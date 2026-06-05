@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AWS 入门教学讲义 · 第1课 S3</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <!-- 尽早套用主题/字号,避免刷新闪烁 -->
+  <script>
+    (function () {
+      var th = localStorage.getItem("aws_course_theme") || "light";
+      var fs = localStorage.getItem("aws_course_font") || "normal";
+      document.documentElement.setAttribute("data-theme", th);
+      document.documentElement.setAttribute("data-fontsize", fs);
+      document.documentElement.style.setProperty("--fs-scale", fs === "large" ? "1.18" : "1");
+    })();
+  </script>
+</head>
+<body>
+  <a href="#main" class="skip-link" data-i18n="ui.skip_link">跳到正文</a>
+
+  <!-- ===================== 顶栏 ===================== -->
+  <header class="topbar">
+    <span class="brand"><span class="dot">●</span> <span data-i18n="ui.brand">AWS 入门课</span></span>
+    <span class="spacer"></span>
+    <div class="toolbar-wrap">
+      <button id="langToggle" class="toolbtn keep-label primary" aria-label="切换语言 / 言語切替">
+        🌐 <span class="label-text" data-i18n="ui.langToggle">日本語</span>
+      </button>
+      <button id="glossaryOpen" class="toolbtn" aria-haspopup="dialog">
+        📖 <span class="label-text" data-i18n="ui.glossary">术语表</span>
+      </button>
+      <button id="themeToggle" class="toolbtn" aria-pressed="false">
+        🌙 <span class="label-text" data-i18n="ui.theme_toggle">深色模式</span>
+      </button>
+      <button id="fontToggle" class="toolbtn" aria-pressed="false">
+        🔤 <span class="label-text" data-i18n="ui.font_toggle">大字号</span>
+      </button>
+      <div class="navmenu">
+        <button class="toolbtn navmenu-btn" aria-haspopup="true">
+          ☰ <span class="label-text" data-i18n="ui.nav_title">课程导航</span>
+        </button>
+        <nav class="menu" aria-label="course nav">
+          <a href="intro.html" data-i18n="ui.nav_intro">开篇 · 认识 AWS</a>
+          <a href="lesson1.html" class="current" data-i18n="ui.nav_l1">第1课 · Amazon S3</a>
+          <a href="lesson2.html" data-i18n="ui.nav_l2">第2课 · AWS IAM</a>
+          <a href="lesson3.html" data-i18n="ui.nav_l3">第3课 · Amazon EC2</a>
+          <a href="lesson4.html" data-i18n="ui.nav_l4">第4课 · Amazon VPC</a>
+          <a href="results.html" data-i18n="ui.nav_results">我的结业成果</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ===================== 课头 + 故事主线 ===================== -->
+    <div class="lesson-head">
+      <span class="badge-lesson" data-i18n="l1.badge">第 1 课</span>
+      <h1 data-i18n="l1.title">Amazon S3:云端存储</h1>
+      <p class="subtitle" data-i18n="l1.subtitle">把照片放到「永远装不满的云端储物柜」里</p>
+      <div class="storyline" data-i18n-html="l1.storyline"></div>
+    </div>
+
+    <!-- 控制台免责提示 -->
+    <div class="callout info no-print">
+      <div data-i18n="ui.console_disclaimer"></div>
+    </div>
+
+    <!-- ===================== 学习目标 ===================== -->
+    <section class="card" id="objectives">
+      <h2><span class="sec-emoji">🎯</span> <span data-i18n="l1.goals_title">本课学习目标</span></h2>
+      <ul class="goal-list">
+        <li data-i18n="l1.goal_1"></li>
+        <li data-i18n="l1.goal_2"></li>
+        <li data-i18n="l1.goal_3"></li>
+        <li data-i18n="l1.goal_4"></li>
+      </ul>
+    </section>
+
+    <!-- ===================== 核心概念 ===================== -->
+    <section class="card" id="concept">
+      <span class="mode-badge mode-read">📖 <span data-i18n="ui.badge_read">概念理解</span></span>
+      <h2><span class="sec-emoji">💡</span> <span data-i18n="l1.concept_title">核心概念</span></h2>
+
+      <!-- S3 -->
+      <div class="concept" id="concept-s3">
+        <h3 data-i18n="l1.c_s3_h"></h3>
+        <div class="analogy" data-label="打个比方" data-i18n-attr="data-label:ui.analogy_label" data-i18n="l1.c_s3_analogy"></div>
+        <div class="in-aws" data-label="在 AWS 里" data-i18n-attr="data-label:ui.inaws_label" data-i18n-html="l1.c_s3_aws"></div>
+        <p data-i18n-html="l1.c_s3_where"></p>
+      </div>
+
+      <!-- Bucket -->
+      <div class="concept" id="concept-bucket">
+        <h3 data-i18n="l1.c_bucket_h"></h3>
+        <div class="analogy" data-label="打个比方" data-i18n-attr="data-label:ui.analogy_label" data-i18n="l1.c_bucket_analogy"></div>
+        <div class="in-aws" data-label="在 AWS 里" data-i18n-attr="data-label:ui.inaws_label" data-i18n-html="l1.c_bucket_aws"></div>
+        <p data-i18n-html="l1.c_bucket_where"></p>
+      </div>
+
+      <!-- Object -->
+      <div class="concept" id="concept-object">
+        <h3 data-i18n="l1.c_object_h"></h3>
+        <div class="analogy" data-label="打个比方" data-i18n-attr="data-label:ui.analogy_label" data-i18n="l1.c_object_analogy"></div>
+        <div class="in-aws" data-label="在 AWS 里" data-i18n-attr="data-label:ui.inaws_label" data-i18n-html="l1.c_object_aws"></div>
+        <p data-i18n-html="l1.c_object_where"></p>
+      </div>
+
+      <!-- Region -->
+      <div class="concept" id="concept-region">
+        <h3 data-i18n="l1.c_region_h"></h3>
+        <div class="analogy" data-label="打个比方" data-i18n-attr="data-label:ui.analogy_label" data-i18n="l1.c_region_analogy"></div>
+        <div class="in-aws" data-label="在 AWS 里" data-i18n-attr="data-label:ui.inaws_label" data-i18n-html="l1.c_region_aws"></div>
+        <p data-i18n-html="l1.c_region_where"></p>
+      </div>
+    </section>
+
+    <!-- ===================== 成长型架构图 ===================== -->
+    <section class="card" id="diagram">
+      <h2><span class="sec-emoji">🗺️</span> <span data-i18n="l1.diagram_title">我们的网站现在长这样</span></h2>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 720 320" role="img" width="720" data-i18n-attr="aria-label:l1.diagram_alt">
+          <!-- 用户 -->
+          <g>
+            <rect x="20" y="120" width="150" height="80" rx="12" fill="var(--color-surface)" stroke="var(--color-border)" stroke-width="2"/>
+            <text x="95" y="150" text-anchor="middle" font-size="30">🧑‍🎓</text>
+            <text x="95" y="185" text-anchor="middle" font-size="14" fill="var(--color-text)" data-i18n="l1.dg_user">学员(浏览器)</text>
+          </g>
+          <!-- 箭头 -->
+          <g>
+            <line x1="175" y1="160" x2="265" y2="160" stroke="var(--color-primary)" stroke-width="3" marker-end="url(#arrow)"/>
+            <text x="220" y="148" text-anchor="middle" font-size="12" fill="var(--color-primary-ink)" data-i18n="l1.dg_upload">上传照片</text>
+          </g>
+          <!-- 区域框 -->
+          <rect x="280" y="40" width="410" height="245" rx="16" fill="none" stroke="var(--color-text-faint)" stroke-width="2" stroke-dasharray="7 6"/>
+          <text x="290" y="62" font-size="13" fill="var(--color-text-soft)" data-i18n="l1.dg_region">区域 Region(如:东京)</text>
+          <!-- S3(本课新增,高亮) -->
+          <g class="svg-node-new">
+            <rect x="305" y="80" width="360" height="180" rx="14" fill="var(--color-primary-soft)" stroke="var(--color-primary)" stroke-width="3"/>
+            <text x="325" y="108" font-size="16" font-weight="bold" fill="var(--color-primary-ink)" data-i18n="l1.dg_s3">Amazon S3</text>
+            <!-- 桶 -->
+            <rect x="325" y="125" width="320" height="115" rx="10" fill="var(--color-surface)" stroke="var(--color-primary)" stroke-width="2"/>
+            <text x="340" y="148" font-size="13" font-weight="bold" fill="var(--color-text)" data-i18n="l1.dg_bucket">桶 Bucket:school-photos</text>
+            <!-- 对象 -->
+            <g font-size="12" fill="var(--color-text)">
+              <rect x="345" y="160" width="80" height="62" rx="8" fill="var(--color-accent-soft)" stroke="var(--color-border)"/>
+              <text x="385" y="186" text-anchor="middle" font-size="22">🖼️</text>
+              <text x="385" y="212" text-anchor="middle" data-i18n="l1.dg_obj1">alice.jpg</text>
+              <rect x="440" y="160" width="80" height="62" rx="8" fill="var(--color-accent-soft)" stroke="var(--color-border)"/>
+              <text x="480" y="186" text-anchor="middle" font-size="22">🖼️</text>
+              <text x="480" y="212" text-anchor="middle" data-i18n="l1.dg_obj2">bob.jpg</text>
+              <rect x="535" y="160" width="80" height="62" rx="8" fill="var(--color-accent-soft)" stroke="var(--color-border)"/>
+              <text x="575" y="196" text-anchor="middle" font-size="22" data-i18n="l1.dg_obj3">…</text>
+            </g>
+          </g>
+          <defs>
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L8,3 L0,6 Z" fill="var(--color-primary)"/>
+            </marker>
+          </defs>
+        </svg>
+        <div class="legend-new"><span data-i18n="l1.dg_legend_new">本课新增</span></div>
+        <p class="diagram-caption" data-i18n="l1.diagram_caption"></p>
+      </div>
+    </section>
+
+    <!-- ===================== 动手操作预告 ===================== -->
+    <section class="card" id="handson">
+      <span class="mode-badge mode-do">⌨️ <span data-i18n="ui.badge_do">动手操作</span></span>
+      <h2><span class="sec-emoji">🛠️</span> <span data-i18n="l1.handson_title">动手操作预告</span></h2>
+      <p data-i18n="l1.handson_intro"></p>
+
+      <ol class="steps">
+        <li>
+          <div class="step-title" data-i18n="l1.hs_1_t"></div>
+          <div data-i18n="l1.hs_1_d"></div>
+          <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.hs_1_c"></span></div>
+        </li>
+        <li>
+          <div class="step-title" data-i18n="l1.hs_2_t"></div>
+          <div data-i18n="l1.hs_2_d"></div>
+          <div class="copybox"><code>school-photos-2026</code><button class="copybtn" data-copy="school-photos-2026"><span data-i18n="ui.copy">复制</span></button></div>
+          <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.hs_2_c"></span></div>
+        </li>
+        <li>
+          <div class="step-title" data-i18n="l1.hs_3_t"></div>
+          <div data-i18n="l1.hs_3_d"></div>
+          <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.hs_3_c"></span></div>
+        </li>
+        <li>
+          <div class="step-title" data-i18n="l1.hs_4_t"></div>
+          <div data-i18n="l1.hs_4_d"></div>
+          <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.hs_4_c"></span></div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ===================== 常见踩坑 ===================== -->
+    <section class="card" id="pitfalls">
+      <h2><span class="sec-emoji">⚠️</span> <span data-i18n="l1.pitfalls_title">常见踩坑</span></h2>
+      <div class="callout warn">
+        <div class="pitfall"><div class="pf-q" data-i18n="l1.pf_1_q"></div><div class="pf-a" data-i18n="l1.pf_1_a"></div></div>
+      </div>
+      <div class="callout warn">
+        <div class="pitfall"><div class="pf-q" data-i18n="l1.pf_2_q"></div><div class="pf-a" data-i18n="l1.pf_2_a"></div></div>
+      </div>
+      <div class="callout warn">
+        <div class="pitfall"><div class="pf-q" data-i18n="l1.pf_3_q"></div><div class="pf-a" data-i18n="l1.pf_3_a"></div></div>
+      </div>
+    </section>
+
+    <!-- ===================== 课后清理资源 ===================== -->
+    <section class="card" id="cleanup">
+      <span class="mode-badge mode-do">⌨️ <span data-i18n="ui.badge_do">动手操作</span></span>
+      <h2><span class="sec-emoji">🧹</span> <span data-i18n="l1.cleanup_title">课后清理资源</span></h2>
+      <div class="callout danger"><div data-i18n="l1.cleanup_why"></div></div>
+      <ol class="steps">
+        <li>
+          <div class="step-title"><span data-i18n="l1.cl_1_t"></span> <span class="cost-tag cost-free" data-i18n="ui.cost_free">免费套餐内</span></div>
+          <div data-i18n="l1.cl_1_d"></div>
+        </li>
+        <li>
+          <div class="step-title"><span data-i18n="l1.cl_2_t"></span> <span class="cost-tag cost-paid" data-i18n="ui.cost_paid">会产生费用,务必清理</span></div>
+          <div data-i18n="l1.cl_2_d"></div>
+        </li>
+        <li>
+          <div class="step-title" data-i18n="l1.cl_3_t"></div>
+          <div data-i18n="l1.cl_3_d"></div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ===================== 随堂小测验 ===================== -->
+    <section class="card" id="quiz">
+      <h2><span class="sec-emoji">📝</span> <span data-i18n="l1.quiz_title">随堂小测验</span></h2>
+      <p class="diagram-caption" data-i18n="ui.quiz_submit_hint"></p>
+      <div data-quiz="l1.quiz" data-lesson="l1"></div>
+    </section>
+
+    <!-- ===================== 小结 + 留念 ===================== -->
+    <section class="card" id="summary">
+      <h2><span class="sec-emoji">🎁</span> <span data-i18n="l1.summary_title">本课小结</span></h2>
+      <p data-i18n-html="l1.summary_text"></p>
+      <div class="keepsake">
+        <div class="ks-emoji">📸</div>
+        <h3 data-i18n="l1.keepsake_title">留个纪念</h3>
+        <p data-i18n="l1.keepsake_text"></p>
+      </div>
+      <div class="mark-done-box no-print">
+        <input type="checkbox" id="markDone" data-lesson="l1" />
+        <label for="markDone"><b data-i18n="ui.mark_done">我已完成本课</b><br><small data-i18n="ui.mark_done_hint"></small></label>
+      </div>
+    </section>
+
+    <!-- ===================== 课后问卷 ===================== -->
+    <section class="card no-print" id="survey">
+      <h2><span class="sec-emoji">🗳️</span> <span data-i18n="l1.survey_title">课后问卷</span></h2>
+      <div class="survey-box">
+        <p data-i18n="l1.survey_desc"></p>
+        <div class="qr-placeholder" data-i18n="ui.survey_qr">问卷二维码占位</div>
+        <button class="toolbtn primary" id="surveyBtn" data-survey-url="">
+          🗳️ <span class="label-text" data-i18n="ui.survey_open">打开问卷</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ===================== 上/下课导航 ===================== -->
+    <nav class="lesson-nav">
+      <a href="intro.html"><div class="ln-label" data-i18n="ui.prev_lesson">上一节</div><div class="ln-title" data-i18n="ui.nav_intro">开篇 · 认识 AWS</div></a>
+      <a href="lesson2.html" class="next"><div class="ln-label" data-i18n="ui.next_lesson">下一节</div><div class="ln-title" data-i18n="ui.nav_l2">第2课 · AWS IAM</div></a>
+    </nav>
+  </main>
+
+  <footer class="sitefoot"><span data-i18n="ui.foot"></span></footer>
+
+  <!-- ===================== 术语表 modal ===================== -->
+  <div class="modal-overlay" id="glossaryModal" role="dialog" aria-modal="true" aria-labelledby="glossaryTitle">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="glossaryTitle" data-i18n="ui.glossary_title">术语表</h2>
+        <button class="toolbtn" id="glossaryClose">✕ <span data-i18n="ui.close">关闭</span></button>
+      </div>
+      <div class="modal-body">
+        <input type="search" class="glossary-search" id="glossarySearch" data-i18n-attr="placeholder:ui.glossary_search" />
+        <div id="glossaryList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/lang.js"></script>
+  <script>
+    // 把问卷链接(语言包文件里定义的常量)接到按钮上,方便老师一键替换
+    document.getElementById("surveyBtn").setAttribute("data-survey-url", SURVEY_URL_LESSON1);
+  </script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
