@@ -10,7 +10,7 @@
   }
 
   // 单行 JSON 语法高亮(先转义,再标记字符串/键/布尔)
-  function highlightLine(line) {
+  function highlightJson(line) {
     var e = esc(line);
     e = e.replace(/"(\\.|[^"\\])*"(\s*:)?/g, function (m) {
       return /:\s*$/.test(m)
@@ -21,15 +21,28 @@
     return e === "" ? "&nbsp;" : e;
   }
 
+  // 单行 HTML 语法高亮(标签名 + 属性值字符串)
+  function highlightHtml(line) {
+    var e = esc(line);
+    e = e.replace(/"[^"]*"/g, '<span class="t-str">$&</span>');
+    e = e.replace(/(&lt;\/?)([a-zA-Z][\w-]*)/g, '$1<span class="t-tag">$2</span>');
+    return e === "" ? "&nbsp;" : e;
+  }
+
+  function highlightLine(line, lang) {
+    return lang === "html" ? highlightHtml(line) : highlightJson(line);
+  }
+
   function renderBlock(box) {
     var key = box.getAttribute("data-code");
+    var lang = box.getAttribute("data-lang") || "json";
     var src = (typeof CODE_SAMPLES !== "undefined" && CODE_SAMPLES[key]) || "";
     var code = box.querySelector("code");
     if (!code) return;
     var lines = src.split("\n");
     code.innerHTML = lines
       .map(function (l, i) {
-        return '<span class="cb-line" data-ln="' + (i + 1) + '">' + highlightLine(l) + "</span>";
+        return '<span class="cb-line" data-ln="' + (i + 1) + '">' + highlightLine(l, lang) + "</span>";
       })
       .join("");
     // 复制按钮带上原始 JSON

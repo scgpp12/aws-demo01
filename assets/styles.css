@@ -328,6 +328,7 @@ section.card p { margin: var(--sp-3) 0; }
 .t-key { color: #79c0ff; }
 .t-str { color: #9ece6a; }
 .t-bool { color: #d2a8ff; }
+.t-tag { color: #f78c6c; }
 
 /* —— 桶策略字段拆解 —— */
 .policy-fields { display: grid; gap: 8px; margin: var(--sp-3) 0; }
@@ -358,6 +359,35 @@ section.card p { margin: var(--sp-3) 0; }
   background: var(--color-accent); color: #fff; display: flex; align-items: center; justify-content: center;
   font-weight: 700; font-size: var(--fs-xs);
 }
+
+/* —— 动手实验:进度条 + 阶段卡片 —— */
+.lab-progress { margin: var(--sp-3) 0 var(--sp-4); }
+.lab-progress-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: var(--fs-sm); margin-bottom: 6px; }
+.lab-progress-track { height: 12px; background: var(--color-surface-2); border-radius: 999px; overflow: hidden; border: 1px solid var(--color-border); }
+.lab-progress-track > span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--color-primary), var(--svc-s3)); transition: width .4s ease; }
+
+.lab-stage {
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  padding: var(--sp-4) var(--sp-5); margin: var(--sp-4) 0; background: var(--color-surface);
+  box-shadow: var(--shadow-sm); transition: border-color .2s, box-shadow .2s;
+}
+.lab-stage.done { border-color: var(--color-success); box-shadow: 0 0 0 1px var(--color-success) inset; }
+.lab-stage-head { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.lab-stage-head h3 { margin: 0; flex: 1; min-width: 200px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: var(--fs-md); }
+.lab-num {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 50%; background: var(--color-primary); color: #fff;
+  font-weight: 800; margin-right: 4px;
+}
+.lab-done-toggle {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none;
+  font-size: var(--fs-sm); font-weight: 700; color: var(--color-text-soft);
+  border: 1.5px solid var(--color-border); border-radius: 999px; padding: 4px 12px; background: var(--color-surface);
+}
+.lab-done-toggle input { width: 18px; height: 18px; }
+.lab-stage.done .lab-done-toggle { color: var(--color-success); border-color: var(--color-success); background: var(--color-success-soft); }
+.lab-goal { background: var(--color-accent-soft); border-radius: var(--radius-sm); padding: 8px 12px; margin: var(--sp-3) 0; }
+.lab-goal::before { content: "🎯 "; }
 
 /* ============================================================
    术语高亮 + 弹出解释

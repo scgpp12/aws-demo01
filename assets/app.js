@@ -12,6 +12,7 @@
     theme: "aws_course_theme",
     font: "aws_course_font",
     progress: "aws_course_progress", // { l1:{done:true,score:3,total:4}, ... }
+    lab: "aws_course_lab",           // { l1:{ "1":true, "6":true }, ... }
   };
 
   /* ---------- 当前状态 ---------- */
@@ -208,6 +209,53 @@
     });
   }
 
+  /* ---------- 动手实验:阶段勾选进度 ---------- */
+  function getLab() {
+    try { return JSON.parse(localStorage.getItem(LS.lab)) || {}; }
+    catch (e) { return {}; }
+  }
+  function initLabProgress() {
+    const boxes = Array.prototype.slice.call(document.querySelectorAll(".lab-check"));
+    if (!boxes.length) return;
+    const lab = getLab();
+
+    function update() {
+      let done = 0;
+      boxes.forEach((cb) => {
+        const st = cb.closest(".lab-stage");
+        if (cb.checked) { done++; if (st) st.classList.add("done"); }
+        else if (st) st.classList.remove("done");
+      });
+      const total = boxes.length;
+      const bar = document.getElementById("labBar");
+      if (bar) bar.style.width = Math.round((done / total) * 100) + "%";
+      const count = document.getElementById("labCount");
+      if (count) count.textContent = done + " / " + total;
+      return done;
+    }
+
+    boxes.forEach((cb) => {
+      const lessonId = cb.getAttribute("data-lab");
+      const stage = cb.getAttribute("data-stage");
+      cb.checked = !!((lab[lessonId] || {})[stage]);
+      cb.addEventListener("change", () => {
+        const store = getLab();
+        store[lessonId] = store[lessonId] || {};
+        store[lessonId][stage] = cb.checked;
+        localStorage.setItem(LS.lab, JSON.stringify(store));
+        const done = update();
+        if (cb.checked) {
+          document.dispatchEvent(new CustomEvent("aws:lab-stage-done", {
+            detail: { lessonId, stage, done, total: boxes.length, allDone: done === boxes.length }
+          }));
+        }
+      });
+    });
+    update();
+    // 语言切换时刷新进度文字
+    document.addEventListener("langchange", update);
+  }
+
   /* ============================================================
      5) 随堂测验(从语言包动态生成,支持重渲染)
      ============================================================ */
@@ -391,6 +439,7 @@
     updateLangButton();
     renderQuizzes();
     initMarkDone();
+    initLabProgress();
 
     // 顶栏按钮
     const langBtn = document.getElementById("langToggle");

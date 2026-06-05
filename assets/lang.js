@@ -79,6 +79,10 @@ const LANG_PACK = {
       celebrate_done_title: "🎉 太棒了,本课完成!",
       celebrate_perfect_title: "💯 满分通过,厉害!",
       celebrate_perfect_sub: "随堂测验全部答对啦~",
+      celebrate_lab6_title: "🎉 你的照片墙网页上线了!",
+      celebrate_lab_all_title: "🏆 全部 7 个阶段完成,太强了!",
+      lab_goal: "目标",
+      lab_done: "完成",
       prev_lesson: "上一节",
       next_lesson: "下一节",
       foot: "AWS 入门教学讲义 · 公司内部培训用 · 可截图留念",
@@ -206,20 +210,62 @@ const LANG_PACK = {
       roadmap_title: "课程服务路线图",
       roadmap_hint: "这门课会用到 4 个 AWS 服务,像搭积木一样逐课加入。下面高亮的是本课主角,其余将在后续课程登场。",
 
-      handson_title: "动手操作预告",
-      handson_intro: "下面是今天上课会亲手做的事。现在先扫一眼有个印象,正式操作跟着老师一步步来。每步后面的「检查点」告诉你:做对了应该看到什么。",
-      hs_1_t: "确认区域选对",
-      hs_1_d: "看控制台右上角,确保是老师指定的区域(比如东京)。",
-      hs_1_c: "右上角显示的城市名 = 老师说的那个,就对了。",
-      hs_2_t: "创建一个桶",
-      hs_2_d: '进入 S3 →「Create bucket」→ 给桶起一个全球唯一的名字(可以在名字后面加上自己名字或数字),其它选项暂时保持默认。',
-      hs_2_c: "桶列表里出现了你刚起名字的那个桶。",
-      hs_3_t: "上传一张照片",
-      hs_3_d: "点进你的桶 →「Upload」→ 选一张本地照片 → 确认上传。",
-      hs_3_c: "桶里出现了这张照片,显示为一个对象,大小不为 0。",
-      hs_4_t: "(进阶)让照片能被打开",
-      hs_4_d: "默认情况下别人打不开这张照片。老师会演示如何安全地开放访问,你能拿到一个可以点开的图片链接。",
-      hs_4_c: "把图片链接发给同桌,对方能在浏览器里看到这张照片。",
+      handson_title: "动手操作:亲手搭一个照片网站",
+      lab_total_time: "完整实验共 7 个阶段,总计约 60 分钟。每个阶段做完后勾选「完成」,进度会自动保存,下次打开还在。",
+      lab_intro: "下面这条实验链,会带你从零创建桶,一路做到把网页发布上线。跟着老师一步步来,每个阶段最后都有「检查点」告诉你做对了该看到什么。涉及按钮名称的地方以实际控制台为准。",
+      lab_progress_label: "实验进度",
+
+      lab1_title: "阶段 1 · 创建桶",
+      lab1_time: "约 5 分钟",
+      lab1_goal: "创建本课要用的桶,亲身体验「桶名全球唯一」和「统一 Region」。",
+      lab1_steps: '<ol class="steps"><li>在控制台顶部搜索框输入 <b>S3</b> 进入,点橙色按钮「Create bucket(创建桶)」。</li><li>在 <b>Bucket name</b> 里输入一个独特的名字,建议格式:school-photos-你的名字-日期。<div class="copybox"><code>school-photos-alice-0605</code><button class="copybtn" data-copy="school-photos-alice-0605">复制</button></div></li><li>在 <b>Region(区域)</b> 处,选择老师指定的同一个区域(如 Asia Pacific (Tokyo) ap-northeast-1)。</li><li>其它选项暂时保持默认,拉到底点「Create bucket」。</li></ol>',
+      lab1_check: "桶列表里出现了你刚创建的桶,Region 显示为老师指定的区域。若提示「name already exists」,换个更独特的名字重试——这就是「全球唯一」。",
+
+      lab2_title: "阶段 2 · 上传对象",
+      lab2_time: "约 7 分钟",
+      lab2_goal: "上传几张照片,理解 Object 与 Key,并亲眼看到「文件夹」只是键名前缀。",
+      lab2_steps: '<ol class="steps"><li>点进你刚建的桶,点「Upload(上传)」→「Add files」选 2–3 张本地图片。</li><li>(可选)先点「Create folder(创建文件夹)」建一个名为 <code>2026</code> 的文件夹,再进去上传,观察控制台怎么显示。</li><li>点「Upload」确认,等待状态显示 <b>Succeeded</b>。</li><li>点开其中一张图片,查看它的 <b>Key(键)</b> 和详细信息。</li></ol>',
+      lab2_check: "桶里出现了你上传的图片,每张是一个 Object;若用了文件夹,图片的 Key 会显示成 2026/xxx.jpg——这个 2026/ 只是键的前缀,不是真目录。",
+
+      lab3_title: "阶段 3 · 配置 Bucket Policy",
+      lab3_time: "约 15 分钟",
+      lab3_goal: "亲手关闭公开访问总开关,并写一段桶策略让图片可被公开读取;再对照「仅特定身份可上传」。",
+      lab3_steps: '<ol class="steps"><li>进入桶的「Permissions(权限)」标签。</li><li>找到「Block public access(阻止公开访问)」点 <b>Edit</b>,取消勾选总开关,保存并按提示输入 <code>confirm</code> 确认。⚠️ 这一步是把大门打开,务必只对练习桶做。</li><li>在同一页找到「Bucket policy(桶策略)」点 <b>Edit</b>,把下面这段 JSON 粘进去,并把 Resource 里的桶名改成你自己的。</li><li>点 <b>Save changes</b> 保存。</li><li>回到对象列表,打开一张图片,复制它的 <b>Object URL</b>,在新标签页粘贴访问。</li><li>逐字段回顾:Effect=Allow、Principal=*、Action=s3:GetObject、Resource=…/*。</li></ol>',
+      lab3_check: "用 Object URL 在浏览器里能直接打开图片,就说明公开读取生效了。若仍 Access Denied,多半是 Block Public Access 没关干净。",
+      lab3_contrast: "对照下面这段「仅管理员可上传」的策略:Principal 不再是 *,而是某个具体身份;Action 也从读(s3:GetObject)换成了写(s3:PutObject)。同一个桶,读和写可以分别授权给不同的人。",
+
+      lab4_title: "阶段 4 · 版本控制实验",
+      lab4_time: "约 8 分钟",
+      lab4_goal: "开启版本控制,制造一次「误覆盖」,再恢复旧版本,亲眼见证防误删。",
+      lab4_steps: '<ol class="steps"><li>进入桶的「Properties(属性)」标签,找到「Bucket Versioning」点 <b>Edit</b>,选 <b>Enable</b> 启用。</li><li>准备另一张不同的图片,把它重命名成和已上传的某张<b>完全相同</b>的文件名(如都叫 alice.jpg)。</li><li>上传这张同名图片,覆盖原来的。</li><li>回到对象列表,打开「Show versions(显示版本)」开关,你会看到同一个 Key 下有多个版本。</li><li>删除最新版本(或下载较早版本),让原图重新成为当前版本。</li></ol>',
+      lab4_check: "同一文件名下能看到多个版本,并能找回被覆盖前的原图。如果当初没开版本控制,原图就真的没了。",
+
+      lab5_title: "阶段 5 · 存储类型与生命周期",
+      lab5_time: "约 8 分钟",
+      lab5_goal: "查看并切换对象的存储类型,创建一条生命周期规则实现自动转档与过期删除。",
+      lab5_steps: '<ol class="steps"><li>打开任意一张图片的详情,查看当前 <b>Storage class</b>(默认 Standard);可点「Edit storage class」体验切换到 Standard-IA。</li><li>回到桶,进入「Management(管理)」标签,点「Create lifecycle rule(创建生命周期规则)」。</li><li>给规则起名(如 archive-old-photos),作用范围选整个桶。</li><li>勾选「Transition current versions(转换当前版本)」,按下面这组示范参数设置:<b>30 天</b>后转 Standard-IA、<b>90 天</b>后转 Glacier 归档。</li><li>再勾选「Expire(过期删除)」,设置 <b>365 天</b>后删除对象,保存规则。</li></ol>',
+      lab5_check: "管理标签下出现了你创建的生命周期规则,显示 30 天转 IA、90 天转归档、365 天过期。规则会在未来自动执行,无需人工。",
+      lab5_note: "示范参数含义:照片上传满 30 天(开始变冷)→ 转入更便宜的 Standard-IA;满 90 天(基本没人看)→ 转入最便宜的 Glacier 归档;满 365 天(确定不再需要)→ 自动删除。提示:存储类型转换和归档取回会产生少量费用(超出免费套餐时),本练习设好规则即可,无需等它真正触发。",
+
+      lab6_title: "阶段 6 · 静态网站托管(高潮)",
+      lab6_time: "约 12 分钟",
+      lab6_goal: "把一个 index.html 放上 S3 并开启静态网站托管,用 S3 给的网址直接打开你的照片墙网页——本课高潮!",
+      lab6_steps: '<ol class="steps"><li>先确认桶里已经上传了 <code>alice.jpg</code>、<code>bob.jpg</code> 两张图片(就用阶段 2 上传的;文件名要和网页里写的<b>完全一致,含大小写</b>)。</li><li>在电脑上新建一个 <code>index.html</code>,内容直接用下面这段「标准首页代码」(复制后保存为 index.html)。</li><li>把 index.html 上传到你桶的<b>根目录</b>(和图片同一层)。</li><li>进入桶「Properties」→ 最下方「Static website hosting」点 <b>Edit</b> → 选 <b>Enable</b>,Index document 填 <code>index.html</code>,保存。</li><li>确认 Block Public Access 已关、且桶策略允许公开读取(沿用阶段 3)。</li><li>回到「Static website hosting」,复制它给出的 <b>Bucket website endpoint</b> 网址,在新标签打开。</li></ol>',
+      lab6_check: "用那个 website endpoint 网址,能在浏览器里看到你的照片墙(标题 + 两张图片)。恭喜——你照片网站的「门面」上线了!若图片裂开,多半是 img 的 src 文件名和实际文件对不上(含大小写);若整页 403,检查公开访问与桶策略。",
+      lab6_codenote: "下面是阶段 6 要用的标准首页代码。img 的 src 文件名必须与你上传的图片完全一致(含大小写)。",
+
+      lab7_title: "阶段 7 · 清理资源",
+      lab7_time: "约 5 分钟",
+      lab7_goal: "删除本课创建的对象、版本和桶,避免持续扣费。",
+      lab7_steps: '<ol class="steps"><li>进入桶,打开「Show versions」,全选所有对象与历史版本,点 <b>Delete</b> 删除(开了版本控制必须连版本一起删),按提示输入 <code>permanently delete</code> 确认。</li><li>生命周期规则、静态托管设置无需单独删,删桶时会一并消失。</li><li>回到桶列表,选中你的桶,点 <b>Delete</b>,按提示输入桶名确认删除。</li><li>确认桶列表里已看不到这个桶。</li></ol>',
+      lab7_check: "桶列表里你的桶消失了,说明对象、版本、桶都已清理干净,不会再扣费。",
+      lab7_why: "为什么必须清理:AWS 按使用量收费。开了版本控制后,旧版本也占空间、也计费,所以删对象时一定要连历史版本一起删,否则桶删不掉、还会悄悄扣费。",
+
+      code_replace_note: "⚠️ 务必把示例里的 <code>school-photos-2026</code> 换成你自己的、全球唯一的桶名;对照示例里的 <code>your-account-id</code> 换成你的 12 位账号 ID。",
+      ih_intro: "点下面的说明,可高亮代码中对应的行 👇",
+      ih_row1: '<span class="pf-k">第 6 行 &lt;title&gt;</span>:浏览器标签页上显示的标题,可自由修改。',
+      ih_row2: '<span class="pf-k">第 24–25 行 &lt;img src&gt;</span>:这里的文件名必须与你上传到桶里的图片<b>完全一致(含大小写)</b>,否则图片会裂开。',
+      ih_row3: '<span class="pf-k">第 7–16 行 &lt;style&gt;</span>:页面样式(配色、网格布局),想美化可改,不改也能正常显示。',
 
       pitfalls_title: "常见踩坑",
       pf_1_q: "上传完照片,把链接发给别人却打不开 / 显示 Access Denied?",
@@ -241,47 +287,124 @@ const LANG_PACK = {
       quiz_title: "随堂小测验",
       quiz: [
         {
-          q: "下面哪个比喻最贴近 Amazon S3?",
+          q: "下面哪句话最准确地描述 Amazon S3?",
           options: [
-            "一台需要你自己开机关机的电脑",
-            "一个几乎装不满、按用量付费的云端储物间",
-            "一张控制谁能进门的门禁卡",
-            "一段连接两地的网线"
+            "一台需要你开机、能跑程序的云服务器",
+            "一个存放文件的对象存储服务,容量近乎无限、按用量付费",
+            "一个管理谁能登录、谁有权限的服务",
+            "一个把多台机器连起来的虚拟网络"
           ],
           answer: 1,
-          explain: "S3 是用来「存文件」的云存储,容量近乎无限、按实际用量付费,就像一个永远有空位的储物间。",
+          explain: "S3 是对象存储,专门用来存文件。选 A 把它当成了能跑程序的 EC2、选 C 当成了管权限的 IAM、选 D 当成了管网络的 VPC——这正是初学者最容易把四个服务搞混的地方。",
           review: "concept-s3"
         },
         {
-          q: "在 S3 里,你必须先创建什么,才能往里面放文件?",
-          options: ["一台服务器", "一个区域", "一个桶 Bucket", "一张门禁卡"],
-          answer: 2,
-          explain: "桶(Bucket)就像储物间里的大箱子,任何文件都要先有桶才能存进去。",
-          review: "concept-bucket"
+          q: "你在控制台看到照片像放在 2026/ 这个「文件夹」里。关于 S3 的存储结构,正确的是?",
+          options: [
+            "S3 内部用真实的目录树(文件夹)来组织文件",
+            "S3 底层是扁平的,文件夹只是键名前缀的视觉模拟",
+            "每个文件夹其实是一个独立的桶",
+            "文件夹是真实存在的,删除整个文件夹会更快"
+          ],
+          answer: 1,
+          explain: "S3 底层是扁平的,真正存在的只有「键」这串完整名字;2026/alice.jpg 里的 2026/ 只是键的前缀,被控制台显示成文件夹。选 A 是最常见的误解——以为 S3 像电脑硬盘一样有真目录树;选 C 混淆了「桶」和「前缀」。",
+          review: "concept-s3"
         },
         {
-          q: "关于「区域 Region」,下面说法正确的是?",
+          q: "建桶时一直报错「名称已存在」,过会儿又发现昨天建的桶「不见了」。正确的解释是?",
           options: [
-            "区域随便选,反正资源到处都能看到",
-            "区域就是桶的名字",
-            "资源属于你创建它时所选的那个区域,换了区域就看不到了",
-            "区域是用来登录的密码"
+            "桶名只要账号内唯一即可;桶不见是被系统自动删了",
+            "桶名要全球唯一,换更独特的名字;桶「不见」通常是右上角 Region 被切换了",
+            "桶名可以随便重复;桶不见是因为没付费",
+            "桶名必须用大写字母;桶不见是浏览器缓存问题"
           ],
-          answer: 2,
-          explain: "资源是「分区域」存放的。新手常因为右上角区域被切换,就以为自己的桶不见了。",
+          answer: 1,
+          explain: "桶名是「全球唯一」(整个 AWS 唯一),不是账号内唯一——这是报错主因;资源又绑定 Region,切了区域当然看不到。选 A 把「全球唯一」误记成「账号内唯一」,正是建桶最常见的两个坑。(另:桶名只能用小写。)",
           review: "concept-region"
         },
         {
-          q: "你上传了一张照片,把链接发给同学却显示「Access Denied」,最可能的原因是?",
+          q: "S3 标准存储宣称「11 个 9」的持久性(99.999999999%)。下面理解正确的是?",
           options: [
-            "照片太大了",
-            "S3 默认阻止公开访问,还没开放读取权限",
-            "区域选成了东京",
-            "桶的名字太短"
+            "意思是 S3 保证 99.999999999% 的时间都能访问、不会宕机",
+            "意思是数据极不容易丢失;但它防的是硬件故障,防不了你自己手滑删除",
+            "意思是数据 100% 永不丢失,删了也能自动找回",
+            "意思是它的单价便宜了大约 11 倍"
           ],
           answer: 1,
-          explain: "S3 默认「Block Public Access」开着,保护你的数据。要别人能看,需要专门开放访问权限。",
-          review: "pitfalls"
+          explain: "11 个 9 说的是「持久性」(数据不丢),不是「可用性」(随时能访问)——选 A 把两者搞混了。它靠多副本冗余防硬件故障,但你主动删除照样会没,所以选 C 也错;要防手滑得靠版本控制。",
+          review: "concept-durability"
+        },
+        {
+          q: "你写了一段 Bucket Policy 允许所有人读图片,但链接还是打不开(Access Denied)。最可能的原因?",
+          options: [
+            "Bucket Policy 没用,必须改用 ACL 才能公开",
+            "桶的 Block Public Access(公开访问总开关)还开着,优先级最高,把策略挡住了",
+            "S3 不支持公开访问,必须先套一层 CloudFront",
+            "图片太大,超过了免费套餐限制"
+          ],
+          answer: 1,
+          explain: "Block Public Access 是「总闸」,优先级最高:只要它开着,Bucket Policy 写得再开放也无效,得先关掉它。选 A 误以为必须用过时的 ACL;选 C 把「加速分发」的 CloudFront 当成了公开访问的前提。",
+          review: "concept-access"
+        },
+        {
+          q: "一段 Bucket Policy 里写着 \"Principal\": \"*\" 和 \"Action\": \"s3:GetObject\"。它的含义是?",
+          options: [
+            "只有管理员(* 代表 admin)能读取对象",
+            "允许任何人读取(下载)指定范围内的对象",
+            "允许任何人上传和删除对象",
+            "拒绝所有人访问对象"
+          ],
+          answer: 1,
+          explain: "Principal \"*\" 表示「所有人」(不是管理员),Action s3:GetObject 表示「读取/下载」。选 A 把 * 误读成管理员;选 C 把「读」(GetObject)当成了「写」(PutObject);选 D 忽略了 Effect 其实是 Allow(允许)。",
+          review: "concept-access"
+        },
+        {
+          q: "学校五年前的活动照几乎没人看,但偶尔合规审计要调取。为省钱,最合适的做法是?",
+          options: [
+            "继续留在 S3 Standard,反正随时能看就行",
+            "转入 Glacier 归档:单价极低,需要时能取回(等几分钟到几小时)",
+            "直接删掉,要用时再让大家重新上传",
+            "全部下载到某位员工的笔记本里保存"
+          ],
+          answer: 1,
+          explain: "极少访问、又必须留存的数据最适合 Glacier 归档:存得极便宜,偶尔取回也能接受延迟。选 A 没省到钱;选 C、D 牺牲了可靠性——审计时找不到或丢了就麻烦。",
+          review: "concept-storageclass"
+        },
+        {
+          q: "你想让「每张照片上传 90 天后自动转入归档,3 年后自动删除」,又不想每次手动操作。该用什么?",
+          options: [
+            "设个手机闹钟,自己定期手动转移和删除",
+            "配置一条生命周期(Lifecycle)规则,让 S3 按时间自动执行",
+            "开启版本控制,它会自动帮你转档和删除",
+            "升级到更贵的存储类型,系统就会自动清理"
+          ],
+          answer: 1,
+          explain: "生命周期规则就是为「按时间自动转档/到期删除」而生,设一次永久生效。选 C 把「版本控制」(留历史版本)和「生命周期」(按时间搬或删)搞混了——这是两个完全不同的功能。",
+          review: "concept-lifecycle"
+        },
+        {
+          q: "学员不小心用一张错图覆盖了原来的 alice.jpg。想找回原图,事先应该开启什么?",
+          options: [
+            "静态加密(Encryption),加密过的文件能自动还原",
+            "版本控制(Versioning):它会保留被覆盖的旧版本,可一键恢复",
+            "Block Public Access,它能锁住文件不被修改",
+            "Standard-IA 存储类型,低频访问的文件不会被覆盖"
+          ],
+          answer: 1,
+          explain: "版本控制会把每次覆盖/删除前的旧版本留底,所以能恢复,这是防手滑的关键。选 A 混淆了「加密」(防别人看)和「恢复」(防丢失),两者无关;选 C、D 都不具备保留历史版本的能力。",
+          review: "concept-versioning"
+        },
+        {
+          q: "你写好一个 index.html,想让它通过一个网址在浏览器里直接打开。最简单的做法是?",
+          options: [
+            "必须先买一台 EC2 服务器来运行它",
+            "在 S3 上开启「静态网站托管」,用它给的网址访问即可",
+            "把文件名改成 public.html 就会自动有网址",
+            "不行,S3 只能存图片,网页得放到别的服务上"
+          ],
+          answer: 1,
+          explain: "简单的静态页面(HTML/CSS/图片)用 S3 的「静态网站托管」就能直接对外访问,不必动用 EC2——这正是我们网站首页的方案。选 A 是新手常见的过度复杂化;选 D 误以为 S3 只能存图片。",
+          review: "concept-usecase"
         }
       ],
 
@@ -405,6 +528,10 @@ const LANG_PACK = {
       celebrate_done_title: "🎉 お疲れさまでした!本回修了!",
       celebrate_perfect_title: "💯 満点合格、すごい!",
       celebrate_perfect_sub: "確認クイズ全問正解です~",
+      celebrate_lab6_title: "🎉 フォトウォールが公開されました!",
+      celebrate_lab_all_title: "🏆 全 7 ステージ完了、お見事!",
+      lab_goal: "目標",
+      lab_done: "完了",
       prev_lesson: "前へ",
       next_lesson: "次へ",
       foot: "AWS 入門講座テキスト · 社内研修用 · スクリーンショットで記念に",
@@ -532,20 +659,62 @@ const LANG_PACK = {
       roadmap_title: "コースのサービス・ロードマップ",
       roadmap_hint: "この講座では 4 つの AWS サービスを、積み木のように毎回 1 つずつ追加していきます。ハイライトが今回の主役、他は次回以降に登場します。",
 
-      handson_title: "ハンズオンの予告",
-      handson_intro: "今日、実際に手を動かす内容です。まずは一通り眺めてイメージを掴みましょう。本番は先生と一緒に一歩ずつ。各ステップの「チェックポイント」は、正しくできたら何が見えるかを教えてくれます。",
-      hs_1_t: "リージョンの確認",
-      hs_1_d: "コンソール右上を見て、先生が指定したリージョン(例:東京)になっているか確認。",
-      hs_1_c: "右上に表示された都市名 = 先生が言った場所、なら OK。",
-      hs_2_t: "バケットを作成",
-      hs_2_d: 'S3 →「Create bucket」→ 世界で一意の名前を付ける(名前の後ろに自分の名前や数字を足すと良い)。他の項目は一旦そのまま。',
-      hs_2_c: "バケット一覧に、今付けた名前のバケットが現れる。",
-      hs_3_t: "写真をアップロード",
-      hs_3_d: "自分のバケットを開く →「Upload」→ ローカルの写真を選ぶ → アップロードを確定。",
-      hs_3_c: "バケット内に写真が 1 つのオブジェクトとして現れ、サイズが 0 ではない。",
-      hs_4_t: "(発展)写真を開けるようにする",
-      hs_4_d: "初期状態では他の人はこの写真を開けません。先生が安全に公開する方法を実演し、クリックで開ける画像 URL を手に入れます。",
-      hs_4_c: "画像 URL を隣の人に送ると、相手がブラウザでこの写真を見られる。",
+      handson_title: "ハンズオン:フォトサイトを自分で作る",
+      lab_total_time: "実験は全 7 ステージ、合計約 60 分。各ステージを終えたら「完了」にチェック。進捗は自動保存され、次回もそのまま残ります。",
+      lab_intro: "この一連の実験で、ゼロからバケットを作り、最後はウェブページを公開するところまで進みます。先生と一歩ずつ。各ステージ末尾の「チェックポイント」が、正しくできたら何が見えるかを教えてくれます。ボタン名などは実際のコンソールに合わせてください(画面は説明と少し違う場合があります)。",
+      lab_progress_label: "実験の進捗",
+
+      lab1_title: "ステージ 1 · バケット作成",
+      lab1_time: "約 5 分",
+      lab1_goal: "今回使うバケットを作成し、「名前は世界で一意」「リージョンを揃える」を体験する。",
+      lab1_steps: '<ol class="steps"><li>コンソール上部の検索に <b>S3</b> と入れて開き、オレンジの「Create bucket(バケットを作成)」を押す。</li><li><b>Bucket name</b> に独自の名前を入力。おすすめ形式:school-photos-自分の名前-日付。<div class="copybox"><code>school-photos-alice-0605</code><button class="copybtn" data-copy="school-photos-alice-0605">コピー</button></div></li><li><b>Region(リージョン)</b> で、先生指定の同じリージョン(例:Asia Pacific (Tokyo) ap-northeast-1)を選ぶ。</li><li>他の項目は一旦そのまま、一番下の「Create bucket」を押す。</li></ol>',
+      lab1_check: "バケット一覧に作成したバケットが現れ、Region が指定どおり。「name already exists」と出たら、より独自な名前で再試行——これが「世界で一意」です。",
+
+      lab2_title: "ステージ 2 · オブジェクトのアップロード",
+      lab2_time: "約 7 分",
+      lab2_goal: "写真を数枚アップし、Object と Key を理解、「フォルダ」がキーのプレフィックスにすぎないことを確認する。",
+      lab2_steps: '<ol class="steps"><li>作ったバケットを開き、「Upload(アップロード)」→「Add files」でローカル画像を 2〜3 枚選ぶ。</li><li>(任意)先に「Create folder(フォルダ作成)」で <code>2026</code> を作り、その中にアップして表示を観察。</li><li>「Upload」で確定し、状態が <b>Succeeded</b> になるまで待つ。</li><li>画像を 1 枚開き、その <b>Key(キー)</b> と詳細を確認する。</li></ol>',
+      lab2_check: "アップした画像がバケットに現れ、各 1 枚が 1 オブジェクト。フォルダを使うと Key が 2026/xxx.jpg と表示——この 2026/ はキーのプレフィックスで、本物のディレクトリではありません。",
+
+      lab3_title: "ステージ 3 · バケットポリシーの設定",
+      lab3_time: "約 15 分",
+      lab3_goal: "公開アクセスの大元スイッチを外し、画像を公開読み取りできるポリシーを書く。さらに「管理者だけアップ可」と対比する。",
+      lab3_steps: '<ol class="steps"><li>バケットの「Permissions(アクセス許可)」タブを開く。</li><li>「Block public access(公開アクセスのブロック)」で <b>Edit</b>、大元スイッチのチェックを外し、保存して指示どおり <code>confirm</code> と入力して確定。⚠️ これは門を開ける操作。練習用バケットだけに行うこと。</li><li>同じページの「Bucket policy(バケットポリシー)」で <b>Edit</b>、下の JSON を貼り付け、Resource のバケット名を自分のものに変更。</li><li><b>Save changes</b> で保存。</li><li>オブジェクト一覧で画像を開き、<b>Object URL</b> をコピーして新しいタブで開く。</li><li>各フィールドを復習:Effect=Allow、Principal=*、Action=s3:GetObject、Resource=…/*。</li></ol>',
+      lab3_check: "Object URL でブラウザから画像を直接開ければ公開読み取り成功。まだ Access Denied なら、たいてい Block Public Access を外し切れていません。",
+      lab3_contrast: "下の「管理者だけアップ可」ポリシーと対比:Principal が * ではなく特定の ID に、Action も読み(s3:GetObject)から書き(s3:PutObject)に。同じバケットでも、読みと書きを別々の相手に与えられます。",
+
+      lab4_title: "ステージ 4 · バージョニング実験",
+      lab4_time: "約 8 分",
+      lab4_goal: "バージョニングを有効化し、わざと「誤上書き」を起こして旧版を復元、誤削除防止を体感する。",
+      lab4_steps: '<ol class="steps"><li>バケットの「Properties(プロパティ)」タブで「Bucket Versioning」を <b>Edit</b>、<b>Enable</b> を選んで有効化。</li><li>別の画像を用意し、既にアップ済みのどれかと<b>完全に同じ</b>ファイル名(例:alice.jpg)にリネーム。</li><li>その同名画像をアップして元を上書き。</li><li>オブジェクト一覧で「Show versions(バージョンを表示)」を ON、同じ Key の下に複数バージョンが見える。</li><li>最新バージョンを削除(または古い版をダウンロード)し、元の画像を現行に戻す。</li></ol>',
+      lab4_check: "同じファイル名の下に複数バージョンが見え、上書き前の元画像を取り戻せる。もし有効化していなければ、元画像は本当に失われていました。",
+
+      lab5_title: "ステージ 5 · ストレージクラスとライフサイクル",
+      lab5_time: "約 8 分",
+      lab5_goal: "オブジェクトのストレージクラスを確認/切替し、自動移動と期限削除のライフサイクルルールを作る。",
+      lab5_steps: '<ol class="steps"><li>画像の詳細を開き現在の <b>Storage class</b>(既定 Standard)を確認;「Edit storage class」で Standard-IA への切替も体験できる。</li><li>バケットの「Management(管理)」タブで「Create lifecycle rule(ライフサイクルルール作成)」。</li><li>名前(例:archive-old-photos)を付け、対象はバケット全体。</li><li>「Transition current versions(現行バージョンの移行)」で、下の示範パラメータを設定:<b>30 日</b>後に Standard-IA、<b>90 日</b>後に Glacier アーカイブ。</li><li>「Expire(期限切れ削除)」で <b>365 日</b>後に削除を設定し、ルールを保存。</li></ol>',
+      lab5_check: "管理タブに作成したルールが表示され、30 日で IA、90 日でアーカイブ、365 日で期限切れ。ルールは今後自動で実行され、手作業は不要です。",
+      lab5_note: "示範パラメータの意味:アップから 30 日(冷え始め)→ 安い Standard-IA へ;90 日(ほぼ見ない)→ 最安の Glacier アーカイブへ;365 日(もう不要)→ 自動削除。注意:クラス移行やアーカイブ取り出しには少額の料金が発生する場合があります(無料枠超過時)。本練習はルール設定までで OK、実際の発火を待つ必要はありません。",
+
+      lab6_title: "ステージ 6 · 静的ウェブサイトホスティング(クライマックス)",
+      lab6_time: "約 12 分",
+      lab6_goal: "index.html を S3 に置いて静的ホスティングを有効化し、S3 の URL でフォトウォールのページを開く——今回のクライマックス!",
+      lab6_steps: '<ol class="steps"><li>まずバケットに <code>alice.jpg</code>、<code>bob.jpg</code> の 2 枚があることを確認(ステージ 2 のものでOK;ファイル名はページ内の記述と<b>完全一致・大文字小文字も</b>)。</li><li>PC で <code>index.html</code> を新規作成。中身は下の「標準トップページコード」をそのまま使用(コピーして index.html として保存)。</li><li>index.html をバケットの<b>ルート直下</b>(画像と同じ階層)にアップ。</li><li>バケット「Properties」→ 最下部「Static website hosting」で <b>Edit</b> → <b>Enable</b>、Index document に <code>index.html</code> を入力して保存。</li><li>Block Public Access が外れ、バケットポリシーが公開読み取りを許可していることを確認(ステージ 3 を踏襲)。</li><li>「Static website hosting」に戻り、表示された <b>Bucket website endpoint</b> をコピーして新しいタブで開く。</li></ol>',
+      lab6_check: "その website endpoint URL で、自分のフォトウォール(タイトル + 画像 2 枚)がブラウザに表示される。おめでとう——サイトの「顔」が公開されました!画像が崩れるなら img の src とファイル名(大文字小文字含む)の不一致が原因;ページ全体が 403 なら公開設定とポリシーを確認。",
+      lab6_codenote: "下はステージ 6 で使う標準トップページコードです。img の src のファイル名は、アップした画像と完全一致(大文字小文字含む)させてください。",
+
+      lab7_title: "ステージ 7 · リソースの削除",
+      lab7_time: "約 5 分",
+      lab7_goal: "今回作ったオブジェクト・バージョン・バケットを削除し、課金が続くのを防ぐ。",
+      lab7_steps: '<ol class="steps"><li>バケットで「Show versions」を ON、全オブジェクトと履歴バージョンを全選択して <b>Delete</b>(バージョニング有効時は版も一緒に削除必須)、指示どおり <code>permanently delete</code> と入力して確定。</li><li>ライフサイクルや静的ホスティングの設定は個別削除不要、バケット削除時に一緒に消えます。</li><li>バケット一覧に戻り、自分のバケットを選んで <b>Delete</b>、指示どおりバケット名を入力して確定。</li><li>一覧からそのバケットが消えたことを確認。</li></ol>',
+      lab7_check: "一覧から自分のバケットが消えれば、オブジェクト・バージョン・バケットの片付け完了。これ以上課金されません。",
+      lab7_why: "なぜ必ず消すか:AWS は使った分だけ課金。バージョニングを有効にすると旧版も容量を使い課金対象です。だからオブジェクト削除時は履歴版も一緒に消すこと——でないとバケットを消せず、こっそり課金が続きます。",
+
+      code_replace_note: "⚠️ 例の <code>school-photos-2026</code> は必ず自分の世界で一意のバケット名に、対比例の <code>your-account-id</code> は自分の 12 桁アカウント ID に置き換えてください。",
+      ih_intro: "下の説明を押すと、コードの該当行がハイライトされます 👇",
+      ih_row1: '<span class="pf-k">6 行目 &lt;title&gt;</span>:ブラウザのタブに表示されるタイトル。自由に変更可。',
+      ih_row2: '<span class="pf-k">24〜25 行目 &lt;img src&gt;</span>:ここのファイル名はバケットにアップした画像と<b>完全一致(大文字小文字も)</b>させること。違うと画像が崩れます。',
+      ih_row3: '<span class="pf-k">7〜16 行目 &lt;style&gt;</span>:ページの見た目(配色・グリッド)。変えても変えなくても表示されます。',
 
       pitfalls_title: "よくあるつまずき",
       pf_1_q: "アップロード後、リンクを送っても開けない / Access Denied が出る?",
@@ -567,47 +736,124 @@ const LANG_PACK = {
       quiz_title: "確認クイズ",
       quiz: [
         {
-          q: "Amazon S3 に一番近いたとえはどれ?",
+          q: "Amazon S3 を最も正確に説明しているのは?",
           options: [
-            "自分で電源を入れたり切ったりするコンピュータ",
-            "ほぼ満杯にならず、使った分だけ払うクラウドの収納庫",
-            "誰が入れるかを管理する入館カード",
-            "二地点をつなぐ LAN ケーブル"
+            "電源を入れてプログラムを動かすクラウドサーバー",
+            "ファイルを保存するオブジェクトストレージ。容量ほぼ無限・使った分だけ課金",
+            "誰がログインでき、どんな権限を持つかを管理するサービス",
+            "複数のマシンをつなぐ仮想ネットワーク"
           ],
           answer: 1,
-          explain: "S3 は「ファイルを保存する」クラウドストレージ。容量はほぼ無限、実際の使用量で課金。いつでも空きのある収納庫のようなものです。",
+          explain: "S3 はオブジェクトストレージで、ファイル保存専用。A はプログラムを動かす EC2、C は権限を管理する IAM、D はネットワークの VPC と取り違え——初心者が 4 サービスを混同しがちな点です。",
           review: "concept-s3"
         },
         {
-          q: "S3 でファイルを入れる前に、まず何を作る必要がある?",
-          options: ["サーバー", "リージョン", "バケット Bucket", "入館カード"],
-          answer: 2,
-          explain: "バケット(Bucket)は収納庫の大きな箱。どんなファイルも、まずバケットがないと保存できません。",
-          review: "concept-bucket"
+          q: "コンソールで写真が 2026/ という「フォルダ」に入って見えます。S3 の構造として正しいのは?",
+          options: [
+            "S3 は内部で本物のディレクトリツリー(フォルダ)で管理している",
+            "S3 の中身はフラットで、フォルダはキー名プレフィックスの見た目上の表現にすぎない",
+            "各フォルダは実は独立したバケットである",
+            "フォルダは実在し、フォルダごと削除する方が速い"
+          ],
+          answer: 1,
+          explain: "S3 はフラット構造で、実在するのは「キー」というフルネームだけ。2026/alice.jpg の 2026/ はキーのプレフィックスで、コンソールがフォルダ風に見せています。A は最も多い誤解(PC のような本物のツリーがあると思い込む)、C はバケットとプレフィックスの混同。",
+          review: "concept-s3"
         },
         {
-          q: "「リージョン Region」について正しいのは?",
+          q: "作成時に「名前が既に存在」と出続け、昨日のバケットが「消えた」。正しい説明は?",
           options: [
-            "どこを選んでも、リソースはどこからでも見える",
-            "リージョンはバケットの名前のこと",
-            "リソースは作成時に選んだリージョンに属し、別リージョンでは見えない",
-            "リージョンはログイン用のパスワード"
+            "名前はアカウント内で一意ならよい;消えたのはシステムが自動削除したから",
+            "名前は世界で一意。より独自な名前に。消えたのは右上のリージョンが切り替わったから",
+            "名前は重複可;消えたのは未払いだから",
+            "名前は大文字必須;消えたのはブラウザキャッシュのせい"
           ],
-          answer: 2,
-          explain: "リソースはリージョンごとに保存されます。右上のリージョンが切り替わって、バケットが消えたと勘違いするのが初心者あるある。",
+          answer: 1,
+          explain: "バケット名は「世界で一意」(AWS 全体)でアカウント内一意ではない——これがエラーの主因。リソースはリージョンに紐づくので、切り替えれば当然見えません。A は「世界で一意」を「アカウント内一意」と誤記。(名前は小文字のみ。)",
           review: "concept-region"
         },
         {
-          q: "写真をアップしてリンクを送ったら「Access Denied」。最も考えられる原因は?",
+          q: "S3 標準の「9 が 11 個」(99.999999999%)の耐久性。正しい理解は?",
           options: [
-            "写真が大きすぎる",
-            "S3 が初期状態で公開アクセスをブロックし、読み取り許可がまだ",
-            "リージョンを東京にした",
-            "バケット名が短すぎる"
+            "99.999999999% の時間アクセスでき、停止しないという意味",
+            "データがほぼ失われないという意味;守るのはハード故障で、自分の誤削除は防げない",
+            "データは 100% 永遠に失われず、削除しても自動で戻る",
+            "単価がおよそ 11 分の 1 に安くなるという意味"
           ],
           answer: 1,
-          explain: "S3 は初期状態で「Block Public Access」が有効でデータを保護します。見せるには公開アクセスの許可が必要です。",
-          review: "pitfalls"
+          explain: "11 個の 9 は「耐久性」(データが失われない)であって「可用性」(いつでもアクセス)ではない——A は両者を混同。複数コピーでハード故障に備えますが、自分で削除すれば消えるので C も誤り。誤操作対策はバージョニングです。",
+          review: "concept-durability"
+        },
+        {
+          q: "全員に読み取りを許可する Bucket Policy を書いたのに、リンクが開けない(Access Denied)。最も考えられる原因は?",
+          options: [
+            "Bucket Policy は無効で、公開には ACL が必須",
+            "バケットの Block Public Access(公開の大元スイッチ)がまだ ON で、最優先でポリシーを塞いでいる",
+            "S3 は公開非対応で、先に CloudFront を被せる必要がある",
+            "画像が大きすぎて無料枠を超えた"
+          ],
+          answer: 1,
+          explain: "Block Public Access は「大元のスイッチ」で最優先:ON の間はポリシーをいくら開放しても無効、まず外す必要があります。A は古い ACL が必須という誤解、C は高速配信用の CloudFront を公開の前提と取り違え。",
+          review: "concept-access"
+        },
+        {
+          q: "ある Bucket Policy に \"Principal\": \"*\" と \"Action\": \"s3:GetObject\" とあります。意味は?",
+          options: [
+            "管理者(* は admin)だけが読み取れる",
+            "誰でも指定範囲のオブジェクトを読み取り(ダウンロード)できる",
+            "誰でもアップロードと削除ができる",
+            "全員のアクセスを拒否する"
+          ],
+          answer: 1,
+          explain: "Principal \"*\" は「全員」(管理者ではない)、Action s3:GetObject は「読み取り/ダウンロード」。A は * を管理者と誤読、C は「読み」(GetObject)を「書き」(PutObject)と混同、D は Effect が Allow(許可)であることを見落とし。",
+          review: "concept-access"
+        },
+        {
+          q: "5 年前のイベント写真はほぼ見ないが、たまに監査で取り出す。節約のため最適なのは?",
+          options: [
+            "S3 Standard のまま。いつでも見られれば良い",
+            "Glacier アーカイブへ移す:激安で、必要時に取り出せる(数分〜数時間)",
+            "削除して、必要になったら皆に再アップしてもらう",
+            "社員のノート PC に全部ダウンロードして保管"
+          ],
+          answer: 1,
+          explain: "ほぼ見ないが残すデータは Glacier アーカイブが最適:激安で、たまの取り出し遅延も許容範囲。A は節約にならず、C・D は信頼性を犠牲にし、監査時に見つからない・失う恐れ。",
+          review: "concept-storageclass"
+        },
+        {
+          q: "「各写真はアップ 90 日後に自動でアーカイブ、3 年後に自動削除」を、毎回手作業せずに実現したい。使うべきは?",
+          options: [
+            "スマホのアラームで、定期的に自分で移動・削除する",
+            "ライフサイクル(Lifecycle)ルールを設定し、S3 に時間で自動実行させる",
+            "バージョニングを有効化すれば、自動で移動・削除してくれる",
+            "より高いストレージクラスに上げれば、システムが自動で片付ける"
+          ],
+          answer: 1,
+          explain: "ライフサイクルは「時間で自動移動/期限削除」のための機能で、一度設定すれば恒久的に効きます。C は「バージョニング」(履歴を残す)と「ライフサイクル」(時間で移動・削除)の混同——まったく別の機能です。",
+          review: "concept-lifecycle"
+        },
+        {
+          q: "生徒が誤って別の画像で alice.jpg を上書きしました。元の画像を取り戻すには、事前に何を有効化?",
+          options: [
+            "静的暗号化(Encryption)。暗号化したファイルは自動で復元される",
+            "バージョニング(Versioning):上書き前の旧版を保持し、ワンクリックで復元できる",
+            "Block Public Access。ファイルをロックして変更させない",
+            "Standard-IA。低頻度アクセスのファイルは上書きされない"
+          ],
+          answer: 1,
+          explain: "バージョニングは上書き/削除前の旧版を残すので復元可能——誤操作対策の要。A は「暗号化」(盗み見防止)と「復元」(消失防止)の混同で無関係、C・D は履歴保持の機能を持ちません。",
+          review: "concept-versioning"
+        },
+        {
+          q: "用意した index.html を、ブラウザの URL で直接開けるようにしたい。最も簡単な方法は?",
+          options: [
+            "まず EC2 サーバーを 1 台買って動かす必要がある",
+            "S3 の「静的ウェブサイトホスティング」を有効化し、発行された URL で開く",
+            "ファイル名を public.html に変えれば自動で URL が付く",
+            "無理。S3 は画像専用で、ウェブページは別サービスに置く"
+          ],
+          answer: 1,
+          explain: "シンプルな静的ページ(HTML/CSS/画像)は S3 の「静的ウェブサイトホスティング」でそのまま公開でき、EC2 は不要——これが私たちのサイトのトップの方式です。A は初心者にありがちな過剰な複雑化、D は S3 が画像専用という誤解。",
+          review: "concept-usecase"
         }
       ],
 
@@ -674,7 +920,7 @@ const CODE_SAMPLES = {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "PublicReadPhotos",
+      "Sid": "PublicReadForPhotos",
       "Effect": "Allow",
       "Principal": "*",
       "Action": "s3:GetObject",
@@ -687,16 +933,44 @@ const CODE_SAMPLES = {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "AdminUploadOnly",
+      "Sid": "OnlyAdminCanUpload",
       "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::123456789012:user/admin"
-      },
-      "Action": ["s3:PutObject"],
+      "Principal": { "AWS": "arn:aws:iam::your-account-id:user/admin" },
+      "Action": "s3:PutObject",
       "Resource": "arn:aws:s3:::school-photos-2026/*"
     }
   ]
-}`
+}`,
+  indexHtml:
+`<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>语言学校 · 照片分享墙</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; background: #f4f6f8; color: #222; }
+    header { background: #232f3e; color: #fff; padding: 24px; text-align: center; }
+    header h1 { margin: 0; font-size: 22px; }
+    header p { margin: 8px 0 0; color: #ff9900; }
+    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+               gap: 12px; padding: 20px; max-width: 900px; margin: 0 auto; }
+    .gallery img { width: 100%; border-radius: 8px; display: block; }
+    footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📸 语言学校 · 学员照片分享墙</h1>
+    <p>由 Amazon S3 静态网站托管驱动</p>
+  </header>
+  <div class="gallery">
+    <img src="alice.jpg" alt="学员照片 1">
+    <img src="bob.jpg" alt="学员照片 2">
+  </div>
+  <footer>本页托管在 Amazon S3 · AWS 入门课作品</footer>
+</body>
+</html>`
 };
 
 /* 一键替换的问卷链接(老师自行填入) */

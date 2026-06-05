@@ -71,4 +71,16 @@
               tt("ui.celebrate_perfect_sub", ""));
     if (!prefersReduced()) confettiBig();
   });
+
+  // 动手实验:阶段 6(静态托管上线)与 7 个阶段全部完成时庆祝
+  document.addEventListener("aws:lab-stage-done", function (e) {
+    if (!e.detail) return;
+    if (e.detail.allDone) {
+      showToast(tt("ui.celebrate_lab_all_title", "🏆 全部完成!"));
+      if (!prefersReduced()) confettiBig();
+    } else if (String(e.detail.stage) === "6") {
+      showToast(tt("ui.celebrate_lab6_title", "🎉 你的网页上线了!"));
+      if (!prefersReduced()) confettiSides();
+    }
+  });
 })();

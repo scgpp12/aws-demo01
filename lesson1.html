@@ -285,32 +285,119 @@
     <!-- ===================== 动手操作预告 ===================== -->
     <section class="card" id="handson" data-aos="fade-up">
       <span class="mode-badge mode-do">⌨️ <span data-i18n="ui.badge_do">动手操作</span></span>
-      <h2><span class="sec-emoji">🛠️</span> <span data-i18n="l1.handson_title">动手操作预告</span></h2>
-      <p data-i18n="l1.handson_intro"></p>
+      <h2><span class="sec-emoji">🛠️</span> <span data-i18n="l1.handson_title">动手操作</span></h2>
+      <div class="total-time-banner" data-i18n="l1.lab_total_time"></div>
+      <p data-i18n="l1.lab_intro"></p>
+      <div class="callout info no-print"><div data-i18n="ui.console_disclaimer"></div></div>
 
-      <ol class="steps">
-        <li>
-          <div class="step-title" data-i18n="l1.hs_1_t"></div>
-          <div data-i18n="l1.hs_1_d"></div>
-          <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.hs_1_c"></span></div>
-        </li>
-        <li>
-          <div class="step-title" data-i18n="l1.hs_2_t"></div>
-          <div data-i18n="l1.hs_2_d"></div>
-          <div class="copybox"><code>school-photos-2026</code><button class="copybtn" data-copy="school-photos-2026"><span data-i18n="ui.copy">复制</span></button></div>
-          <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.hs_2_c"></span></div>
-        </li>
-        <li>
-          <div class="step-title" data-i18n="l1.hs_3_t"></div>
-          <div data-i18n="l1.hs_3_d"></div>
-          <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.hs_3_c"></span></div>
-        </li>
-        <li>
-          <div class="step-title" data-i18n="l1.hs_4_t"></div>
-          <div data-i18n="l1.hs_4_d"></div>
-          <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.hs_4_c"></span></div>
-        </li>
-      </ol>
+      <!-- 实验进度条 -->
+      <div class="lab-progress no-print">
+        <div class="lab-progress-head"><span data-i18n="l1.lab_progress_label">实验进度</span><span id="labCount">0 / 7</span></div>
+        <div class="lab-progress-track"><span id="labBar"></span></div>
+      </div>
+
+      <!-- 阶段 1 -->
+      <div class="lab-stage" id="lab-1">
+        <div class="lab-stage-head">
+          <h3><span class="lab-num">1</span><span data-i18n="l1.lab1_title"></span><span class="time-badge" data-i18n="l1.lab1_time"></span><span class="cost-tag cost-free" data-i18n="ui.cost_free"></span></h3>
+          <label class="lab-done-toggle"><input type="checkbox" class="lab-check" data-lab="l1" data-stage="1"><span data-i18n="ui.lab_done">完成</span></label>
+        </div>
+        <p class="lab-goal"><b data-i18n="ui.lab_goal">目标</b>:<span data-i18n="l1.lab1_goal"></span></p>
+        <div data-i18n-html="l1.lab1_steps"></div>
+        <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.lab1_check"></span></div>
+      </div>
+
+      <!-- 阶段 2 -->
+      <div class="lab-stage" id="lab-2">
+        <div class="lab-stage-head">
+          <h3><span class="lab-num">2</span><span data-i18n="l1.lab2_title"></span><span class="time-badge" data-i18n="l1.lab2_time"></span><span class="cost-tag cost-free" data-i18n="ui.cost_free"></span></h3>
+          <label class="lab-done-toggle"><input type="checkbox" class="lab-check" data-lab="l1" data-stage="2"><span data-i18n="ui.lab_done">完成</span></label>
+        </div>
+        <p class="lab-goal"><b data-i18n="ui.lab_goal">目标</b>:<span data-i18n="l1.lab2_goal"></span></p>
+        <div data-i18n-html="l1.lab2_steps"></div>
+        <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.lab2_check"></span></div>
+      </div>
+
+      <!-- 阶段 3 -->
+      <div class="lab-stage" id="lab-3">
+        <div class="lab-stage-head">
+          <h3><span class="lab-num">3</span><span data-i18n="l1.lab3_title"></span><span class="time-badge" data-i18n="l1.lab3_time"></span><span class="cost-tag cost-free" data-i18n="ui.cost_free"></span></h3>
+          <label class="lab-done-toggle"><input type="checkbox" class="lab-check" data-lab="l1" data-stage="3"><span data-i18n="ui.lab_done">完成</span></label>
+        </div>
+        <p class="lab-goal"><b data-i18n="ui.lab_goal">目标</b>:<span data-i18n="l1.lab3_goal"></span></p>
+        <div data-i18n-html="l1.lab3_steps"></div>
+        <div class="callout warn" data-i18n-html="l1.code_replace_note"></div>
+        <!-- 公开读取策略 -->
+        <div class="codeblock" data-code="policyPublicRead">
+          <div class="cb-head"><span data-i18n="l1.policy1_title">例 1</span><button class="copybtn" type="button" data-copy=""><span data-i18n="ui.copy">复制</span></button></div>
+          <pre class="cb-pre"><code></code></pre>
+        </div>
+        <!-- 对照:仅管理员可上传 -->
+        <div class="callout info" data-i18n-html="l1.lab3_contrast"></div>
+        <div class="codeblock" data-code="policyAdminUpload">
+          <div class="cb-head"><span data-i18n="l1.policy2_title">例 2</span><button class="copybtn" type="button" data-copy=""><span data-i18n="ui.copy">复制</span></button></div>
+          <pre class="cb-pre"><code></code></pre>
+        </div>
+        <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.lab3_check"></span></div>
+      </div>
+
+      <!-- 阶段 4 -->
+      <div class="lab-stage" id="lab-4">
+        <div class="lab-stage-head">
+          <h3><span class="lab-num">4</span><span data-i18n="l1.lab4_title"></span><span class="time-badge" data-i18n="l1.lab4_time"></span><span class="cost-tag cost-free" data-i18n="ui.cost_free"></span></h3>
+          <label class="lab-done-toggle"><input type="checkbox" class="lab-check" data-lab="l1" data-stage="4"><span data-i18n="ui.lab_done">完成</span></label>
+        </div>
+        <p class="lab-goal"><b data-i18n="ui.lab_goal">目标</b>:<span data-i18n="l1.lab4_goal"></span></p>
+        <div data-i18n-html="l1.lab4_steps"></div>
+        <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.lab4_check"></span></div>
+      </div>
+
+      <!-- 阶段 5 -->
+      <div class="lab-stage" id="lab-5">
+        <div class="lab-stage-head">
+          <h3><span class="lab-num">5</span><span data-i18n="l1.lab5_title"></span><span class="time-badge" data-i18n="l1.lab5_time"></span><span class="cost-tag cost-paid" data-i18n="ui.cost_paid"></span></h3>
+          <label class="lab-done-toggle"><input type="checkbox" class="lab-check" data-lab="l1" data-stage="5"><span data-i18n="ui.lab_done">完成</span></label>
+        </div>
+        <p class="lab-goal"><b data-i18n="ui.lab_goal">目标</b>:<span data-i18n="l1.lab5_goal"></span></p>
+        <div data-i18n-html="l1.lab5_steps"></div>
+        <div class="callout warn" data-i18n="l1.lab5_note"></div>
+        <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.lab5_check"></span></div>
+      </div>
+
+      <!-- 阶段 6 -->
+      <div class="lab-stage" id="lab-6">
+        <div class="lab-stage-head">
+          <h3><span class="lab-num">6</span><span data-i18n="l1.lab6_title"></span><span class="time-badge" data-i18n="l1.lab6_time"></span><span class="cost-tag cost-free" data-i18n="ui.cost_free"></span></h3>
+          <label class="lab-done-toggle"><input type="checkbox" class="lab-check" data-lab="l1" data-stage="6"><span data-i18n="ui.lab_done">完成</span></label>
+        </div>
+        <p class="lab-goal"><b data-i18n="ui.lab_goal">目标</b>:<span data-i18n="l1.lab6_goal"></span></p>
+        <div data-i18n-html="l1.lab6_steps"></div>
+        <div class="callout info" data-i18n="l1.lab6_codenote"></div>
+        <!-- 标准首页 index.html -->
+        <div class="codeblock" data-code="indexHtml" data-lang="html">
+          <div class="cb-head"><span>index.html</span><button class="copybtn" type="button" data-copy=""><span data-i18n="ui.copy">复制</span></button></div>
+          <pre class="cb-pre"><code></code></pre>
+        </div>
+        <div class="policy-fields">
+          <div class="pf-hint" data-i18n="l1.ih_intro"></div>
+          <button class="pf-row" type="button" data-cb="indexHtml" data-hl="6" data-i18n-html="l1.ih_row1"></button>
+          <button class="pf-row" type="button" data-cb="indexHtml" data-hl="24-25" data-i18n-html="l1.ih_row2"></button>
+          <button class="pf-row" type="button" data-cb="indexHtml" data-hl="7-16" data-i18n-html="l1.ih_row3"></button>
+        </div>
+        <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.lab6_check"></span></div>
+      </div>
+
+      <!-- 阶段 7 -->
+      <div class="lab-stage" id="lab-7">
+        <div class="lab-stage-head">
+          <h3><span class="lab-num">7</span><span data-i18n="l1.lab7_title"></span><span class="time-badge" data-i18n="l1.lab7_time"></span><span class="cost-tag cost-free" data-i18n="ui.cost_free"></span></h3>
+          <label class="lab-done-toggle"><input type="checkbox" class="lab-check" data-lab="l1" data-stage="7"><span data-i18n="ui.lab_done">完成</span></label>
+        </div>
+        <p class="lab-goal"><b data-i18n="ui.lab_goal">目标</b>:<span data-i18n="l1.lab7_goal"></span></p>
+        <div data-i18n-html="l1.lab7_steps"></div>
+        <div class="callout danger" data-i18n="l1.lab7_why"></div>
+        <div class="checkpoint"><b data-i18n="ui.checkpoint_label">检查点</b>:<span data-i18n="l1.lab7_check"></span></div>
+      </div>
     </section>
 
     <!-- ===================== 常见踩坑 ===================== -->
