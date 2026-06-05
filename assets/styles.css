@@ -288,6 +288,77 @@ section.card p { margin: var(--sp-3) 0; }
   margin: var(--sp-3) 0 0;
 }
 
+/* —— 讲解时长标注 —— */
+.time-badge {
+  display: inline-block; font-size: var(--fs-xs); font-weight: 700;
+  color: var(--color-accent); background: var(--color-accent-soft);
+  border: 1px solid var(--color-border); border-radius: 999px;
+  padding: 2px 10px; margin-left: 8px; vertical-align: middle; white-space: nowrap;
+}
+.time-badge::before { content: "⏱ "; }
+.concept h3 { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+
+.total-time-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--color-primary-soft); color: var(--color-primary-ink);
+  border: 1px solid var(--color-border); border-radius: var(--radius);
+  padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-4); font-weight: 700;
+  font-size: var(--fs-sm);
+}
+.total-time-banner::before { content: "🕒"; font-size: 1.3em; }
+
+/* —— JSON 代码块(深色主题,两种模式下都好读)—— */
+.codeblock {
+  background: #0f1722; border: 1px solid #28323f; border-radius: var(--radius);
+  overflow: hidden; margin: var(--sp-3) 0;
+}
+.cb-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 12px; background: #182433; color: #cde3f5; font-size: var(--fs-sm); font-weight: 700;
+}
+.cb-head .copybtn { background: #223247; color: #cde3f5; border-color: #2f4258; }
+.cb-head .copybtn:hover { background: #2c3f57; }
+.cb-pre { margin: 0; padding: 12px 14px; overflow-x: auto; }
+.cb-pre code {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: var(--fs-sm); line-height: 1.7; color: #e7ecf3;
+}
+.cb-line { display: block; padding: 0 8px; margin: 0 -8px; border-left: 3px solid transparent; }
+.cb-line.hl { background: rgba(236, 114, 17, .22); border-left-color: var(--color-primary); }
+.t-key { color: #79c0ff; }
+.t-str { color: #9ece6a; }
+.t-bool { color: #d2a8ff; }
+
+/* —— 桶策略字段拆解 —— */
+.policy-fields { display: grid; gap: 8px; margin: var(--sp-3) 0; }
+.policy-fields .pf-hint { font-size: var(--fs-sm); color: var(--color-text-soft); }
+.pf-row {
+  text-align: left; width: 100%; cursor: pointer; color: var(--color-text);
+  border: 1.5px solid var(--color-border); background: var(--color-surface-2);
+  border-radius: var(--radius-sm); padding: 10px 14px; font-size: var(--fs-sm);
+  transition: border-color .15s, background .15s;
+}
+.pf-row:hover { border-color: var(--color-accent); }
+.pf-row.active { border-color: var(--color-primary); background: var(--color-primary-soft); }
+.pf-row:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
+.pf-row .pf-k {
+  font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 800;
+  color: var(--color-primary-ink); margin-right: 6px;
+}
+
+/* —— 权限四层列表 —— */
+.layer-list { list-style: none; padding: 0; margin: var(--sp-3) 0; display: grid; gap: 8px; counter-reset: layer; }
+.layer-list li {
+  background: var(--color-surface-2); border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm); padding: 10px 14px 10px 44px; position: relative; font-size: var(--fs-sm);
+}
+.layer-list li::before {
+  counter-increment: layer; content: counter(layer);
+  position: absolute; left: 10px; top: 10px; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--color-accent); color: #fff; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: var(--fs-xs);
+}
+
 /* ============================================================
    术语高亮 + 弹出解释
    ============================================================ */

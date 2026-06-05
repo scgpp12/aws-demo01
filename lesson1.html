@@ -86,10 +86,11 @@
     <section class="card" id="concept" data-aos="fade-up">
       <span class="mode-badge mode-read">📖 <span data-i18n="ui.badge_read">概念理解</span></span>
       <h2><span class="sec-emoji">💡</span> <span data-i18n="l1.concept_title">核心概念</span></h2>
+      <div class="total-time-banner" data-i18n="l1.concept_total_time"></div>
 
       <!-- ① S3 + 三大概念 + 假文件夹 -->
       <div class="concept" id="concept-s3">
-        <h3 data-i18n="l1.cc1_h"></h3>
+        <h3><span data-i18n="l1.cc1_h"></span><span class="time-badge" data-i18n="l1.cc1_time"></span></h3>
         <div class="analogy" data-i18n-attr="data-label:ui.analogy_label" data-i18n="l1.cc1_analogy"></div>
         <div class="in-aws" id="concept-bucket" data-i18n-attr="data-label:ui.inaws_label" data-i18n-html="l1.cc1_aws"></div>
         <div class="callout warn" data-i18n-html="l1.cc1_folder"></div>
@@ -98,7 +99,7 @@
 
       <!-- ② 持久性 / 可用性 -->
       <div class="concept" id="concept-durability">
-        <h3 data-i18n="l1.cc2_h"></h3>
+        <h3><span data-i18n="l1.cc2_h"></span><span class="time-badge" data-i18n="l1.cc2_time"></span></h3>
         <div class="analogy" data-i18n-attr="data-label:ui.analogy_label" data-i18n="l1.cc2_analogy"></div>
         <div class="in-aws" data-i18n-attr="data-label:ui.inaws_label" data-i18n-html="l1.cc2_aws"></div>
         <p class="story-ex" data-i18n-html="l1.cc2_ex"></p>
@@ -106,34 +107,90 @@
 
       <!-- ③ 桶的两条铁律(名字唯一 + 绑定区域) -->
       <div class="concept" id="concept-region">
-        <h3 data-i18n="l1.cc3_h"></h3>
+        <h3><span data-i18n="l1.cc3_h"></span><span class="time-badge" data-i18n="l1.cc3_time"></span></h3>
         <div class="analogy" data-i18n-attr="data-label:ui.analogy_label" data-i18n="l1.cc3_analogy"></div>
         <div class="in-aws" data-i18n-attr="data-label:ui.inaws_label" data-i18n-html="l1.cc3_aws"></div>
         <p class="story-ex" data-i18n-html="l1.cc3_ex"></p>
       </div>
 
-      <!-- ④ 访问控制(铺垫 IAM) -->
+      <!-- ④ 权限与访问控制(重点:四层 + JSON 拆解) -->
       <div class="concept" id="concept-access">
-        <h3 data-i18n="l1.cc4_h"></h3>
+        <h3><span data-i18n="l1.cc4_h"></span><span class="time-badge" data-i18n="l1.cc4_time"></span></h3>
         <div class="analogy" data-i18n-attr="data-label:ui.analogy_label" data-i18n="l1.cc4_analogy"></div>
         <div class="in-aws" data-i18n-attr="data-label:ui.inaws_label" data-i18n-html="l1.cc4_aws"></div>
+
+        <!-- 桶策略 JSON 逐字段拆解 -->
+        <p data-i18n-html="l1.cc4_json_intro"></p>
+        <div class="codeblock" data-code="policyPublicRead">
+          <div class="cb-head">
+            <span data-i18n="l1.policy1_title">例 1</span>
+            <button class="copybtn" type="button" data-copy=""><span data-i18n="ui.copy">复制</span></button>
+          </div>
+          <pre class="cb-pre"><code></code></pre>
+        </div>
+        <div class="policy-fields">
+          <div class="pf-hint" data-i18n="l1.concept_click_hint"></div>
+          <button class="pf-row" type="button" data-cb="policyPublicRead" data-hl="2" data-i18n-html="l1.pf_version"></button>
+          <button class="pf-row" type="button" data-cb="policyPublicRead" data-hl="3-11" data-i18n-html="l1.pf_statement"></button>
+          <button class="pf-row" type="button" data-cb="policyPublicRead" data-hl="5" data-i18n-html="l1.pf_sid"></button>
+          <button class="pf-row" type="button" data-cb="policyPublicRead" data-hl="6" data-i18n-html="l1.pf_effect"></button>
+          <button class="pf-row" type="button" data-cb="policyPublicRead" data-hl="7" data-i18n-html="l1.pf_principal"></button>
+          <button class="pf-row" type="button" data-cb="policyPublicRead" data-hl="8" data-i18n-html="l1.pf_action"></button>
+          <button class="pf-row" type="button" data-cb="policyPublicRead" data-hl="9" data-i18n-html="l1.pf_resource"></button>
+        </div>
+
+        <!-- 对照例 2:仅管理员可上传 -->
+        <div class="codeblock" data-code="policyAdminUpload">
+          <div class="cb-head">
+            <span data-i18n="l1.policy2_title">例 2</span>
+            <button class="copybtn" type="button" data-copy=""><span data-i18n="ui.copy">复制</span></button>
+          </div>
+          <pre class="cb-pre"><code></code></pre>
+        </div>
+        <div class="callout info" data-i18n-html="l1.cc4_policy2_note"></div>
+
+        <div class="callout success" data-i18n-html="l1.cc4_leastpriv"></div>
         <p class="story-ex" data-i18n-html="l1.cc4_ex"></p>
       </div>
 
-      <!-- ⑤ 存储类别与省钱 -->
+      <!-- ⑤ 存储类型 -->
       <div class="concept" id="concept-storageclass">
-        <h3 data-i18n="l1.cc5_h"></h3>
+        <h3><span data-i18n="l1.cc5_h"></span><span class="time-badge" data-i18n="l1.cc5_time"></span></h3>
         <div class="analogy" data-i18n-attr="data-label:ui.analogy_label" data-i18n="l1.cc5_analogy"></div>
         <div class="in-aws" data-i18n-attr="data-label:ui.inaws_label" data-i18n-html="l1.cc5_aws"></div>
         <p class="story-ex" data-i18n-html="l1.cc5_ex"></p>
       </div>
 
-      <!-- ⑥ 真实用途 -->
-      <div class="concept" id="concept-usecase">
-        <h3 data-i18n="l1.cc6_h"></h3>
+      <!-- ⑥ 生命周期管理 -->
+      <div class="concept" id="concept-lifecycle">
+        <h3><span data-i18n="l1.cc6_h"></span><span class="time-badge" data-i18n="l1.cc6_time"></span></h3>
         <div class="analogy" data-i18n-attr="data-label:ui.analogy_label" data-i18n="l1.cc6_analogy"></div>
         <div class="in-aws" data-i18n-attr="data-label:ui.inaws_label" data-i18n-html="l1.cc6_aws"></div>
         <p class="story-ex" data-i18n-html="l1.cc6_ex"></p>
+      </div>
+
+      <!-- ⑦ 版本控制 -->
+      <div class="concept" id="concept-versioning">
+        <h3><span data-i18n="l1.cc7_h"></span><span class="time-badge" data-i18n="l1.cc7_time"></span></h3>
+        <div class="analogy" data-i18n-attr="data-label:ui.analogy_label" data-i18n="l1.cc7_analogy"></div>
+        <div class="in-aws" data-i18n-attr="data-label:ui.inaws_label" data-i18n-html="l1.cc7_aws"></div>
+        <p class="story-ex" data-i18n-html="l1.cc7_ex"></p>
+      </div>
+
+      <!-- ⑧ 数据保护与加密 -->
+      <div class="concept" id="concept-encryption">
+        <h3><span data-i18n="l1.cc8_h"></span><span class="time-badge" data-i18n="l1.cc8_time"></span></h3>
+        <div class="analogy" data-i18n-attr="data-label:ui.analogy_label" data-i18n="l1.cc8_analogy"></div>
+        <div class="in-aws" data-i18n-attr="data-label:ui.inaws_label" data-i18n-html="l1.cc8_aws"></div>
+        <p class="story-ex" data-i18n-html="l1.cc8_ex"></p>
+      </div>
+
+      <!-- ⑨ 真实用途 -->
+      <div class="concept" id="concept-usecase">
+        <h3><span data-i18n="l1.cc9_h"></span><span class="time-badge" data-i18n="l1.cc9_time"></span></h3>
+        <div class="analogy" data-i18n-attr="data-label:ui.analogy_label" data-i18n="l1.cc9_analogy"></div>
+        <div class="in-aws" data-i18n-attr="data-label:ui.inaws_label" data-i18n-html="l1.cc9_aws"></div>
+        <p class="story-ex" data-i18n-html="l1.cc9_ex"></p>
       </div>
     </section>
 
@@ -354,6 +411,8 @@
     document.getElementById("surveyBtn").setAttribute("data-survey-url", SURVEY_URL_LESSON1);
   </script>
   <script src="assets/app.js"></script>
+  <!-- JSON 代码块语法高亮 + 逐行高亮 + 复制 -->
+  <script src="assets/codeblocks.js"></script>
 
   <!-- ===== 视觉/交互增强(CDN,放在末尾不阻塞渲染;离线时优雅降级) ===== -->
   <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
