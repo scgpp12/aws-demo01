@@ -199,7 +199,13 @@
     if (!cb) return;
     const lessonId = cb.getAttribute("data-lesson");
     cb.checked = !!(getProgress()[lessonId] || {}).done;
-    cb.addEventListener("change", () => setDone(lessonId, cb.checked));
+    cb.addEventListener("change", () => {
+      setDone(lessonId, cb.checked);
+      // 仅在「勾选完成」这一用户动作时派发庆祝事件(取消勾选不触发)
+      if (cb.checked) {
+        document.dispatchEvent(new CustomEvent("aws:lesson-done", { detail: { lessonId } }));
+      }
+    });
   }
 
   /* ============================================================
@@ -255,11 +261,15 @@
         prevState[qi] = oi;
         container._quizState = prevState;
         showAnswer(qi, oi);
-        const correct = questions[qi].answer;
-        if (oi === correct) {
-          // 自动评分:答对计分
-        }
         updateScore();
+        // 刚好答完最后一题时派发一次完成事件(restore / 语言切换重渲染不会进到这里)
+        if (Object.keys(prevState).length === questions.length) {
+          let sc = 0;
+          Object.keys(prevState).forEach((k) => { if (prevState[k] === questions[k].answer) sc++; });
+          document.dispatchEvent(new CustomEvent("aws:quiz-complete", {
+            detail: { lessonId: lessonId, score: sc, total: questions.length, perfect: sc === questions.length }
+          }));
+        }
       }
 
       function showAnswer(qi, oi) {

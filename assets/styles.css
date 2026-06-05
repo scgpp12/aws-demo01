@@ -279,6 +279,14 @@ section.card p { margin: var(--sp-3) 0; }
   display: block; font-weight: 700; color: var(--color-primary-ink); margin-bottom: 4px;
   font-size: var(--fs-sm);
 }
+/* 主线例子(照片分享网站)小框 */
+.concept .story-ex {
+  background: var(--color-success-soft);
+  border-left: 4px solid var(--color-success);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-3) var(--sp-4);
+  margin: var(--sp-3) 0 0;
+}
 
 /* ============================================================
    术语高亮 + 弹出解释
@@ -550,3 +558,80 @@ footer.sitefoot { text-align: center; color: var(--color-text-faint); font-size:
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; scroll-behavior: auto !important; transition: none !important; }
 }
+
+/* ============================================================
+   ↓↓↓ 视觉升级新增(AWS 官方风格图标 / 架构图 / AOS / confetti)↓↓↓
+   全部纳入设计 token 体系,深色模式自动协调。
+   ============================================================ */
+
+/* —— AWS 服务品牌色(存储绿/计算橙/安全红/网络紫) —— */
+:root {
+  --svc-s3:  #7AA116;  --svc-ec2: #ED7100;
+  --svc-iam: #DD344C;  --svc-vpc: #8C4FFF;
+  --region-border: #00A4A6;   /* AWS 架构图里 Region 常用的青色虚线 */
+  --vpc-border:    #8C4FFF;    /* VPC 边框紫(后续课程嵌套用) */
+}
+[data-theme="dark"] {
+  --region-border: #3FD0D2;   /* 深色下提亮,保证对比度 */
+}
+
+/* —— 官方风格图标组件 —— */
+.aws-icon { width: 52px; height: 52px; display: inline-block; vertical-align: middle; }
+.aws-icon-lg { width: 64px; height: 64px; }
+
+/* 服务路线图卡片 */
+.service-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--sp-3); margin-top: var(--sp-3);
+}
+.service-card {
+  position: relative; display: flex; align-items: center; gap: 14px;
+  background: var(--color-surface-2); border: 1px solid var(--color-border);
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.service-card .aws-icon { flex: none; width: 48px; height: 48px; }
+.service-card .svc-name { font-weight: 800; }
+.service-card .svc-sub { color: var(--color-text-soft); font-size: var(--fs-sm); }
+.service-card .svc-lesson {
+  position: absolute; top: 8px; right: 12px; font-size: var(--fs-xs); color: var(--color-text-faint);
+}
+.service-card.dim { opacity: .5; }
+.service-card.active {
+  border-color: var(--svc-s3);
+  box-shadow: 0 0 0 2px var(--svc-s3) inset, var(--shadow-sm);
+}
+
+/* —— 架构图:Region/VPC 边框、节点、连线、新增高亮 —— */
+.dgm-region { fill: none; stroke: var(--region-border); stroke-width: 2.5; stroke-dasharray: 8 6; }
+.dgm-region-label { fill: var(--region-border); font-weight: 700; }
+.dgm-box { fill: var(--color-surface); stroke: var(--svc-s3); stroke-width: 2; }
+.dgm-label { fill: var(--color-text); }
+.dgm-sub { fill: var(--color-text-soft); }
+.dgm-thumb { fill: var(--color-accent-soft); stroke: var(--color-border); }
+.dgm-line { stroke: var(--color-accent); stroke-width: 3; fill: none; }
+.dgm-line-label { fill: var(--color-accent); }
+.dgm-glow { filter: drop-shadow(0 0 5px var(--color-primary)); }
+.dgm-new-badge { fill: var(--color-primary); }
+.dgm-new-badge-text { fill: #fff; font-weight: 700; }
+
+/* —— AOS 安全兜底 ——
+   1) 关闭动效时(系统偏好/库加载失败)强制显示内容;
+   2) 打印时一律显示,避免被 opacity:0 隐藏。 */
+.aos-off [data-aos] { opacity: 1 !important; transform: none !important; }
+@media print { [data-aos] { opacity: 1 !important; transform: none !important; } }
+@media (prefers-reduced-motion: reduce) { [data-aos] { opacity: 1 !important; transform: none !important; } }
+
+/* —— 庆祝 toast —— */
+.celebrate-toast {
+  position: fixed; left: 50%; top: 22px; z-index: 500;
+  transform: translateX(-50%) translateY(-16px);
+  background: var(--color-surface); color: var(--color-text);
+  border: 2px solid var(--color-primary); border-radius: 999px;
+  padding: 12px 26px; box-shadow: var(--shadow-lg);
+  text-align: center; font-weight: 800; max-width: 90vw;
+  opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s;
+}
+.celebrate-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.celebrate-toast .ct-title { font-size: var(--fs-md); }
+.celebrate-toast .ct-sub { font-size: var(--fs-sm); color: var(--color-text-soft); font-weight: 600; margin-top: 2px; }
+@media print { .celebrate-toast { display: none !important; } }
