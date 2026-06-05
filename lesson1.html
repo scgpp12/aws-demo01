@@ -363,13 +363,20 @@
     (function () {
       var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (window.AOS && !reduce) {
+        // 仅当 AOS 确实可用时,才把显示权交给它(此前内容一直是可见的)
+        document.documentElement.classList.add("aos-on");
         AOS.init({ once: true, duration: 700, easing: "ease-out", offset: 80 });
         // 语言/字号切换会改变高度,刷新一次 AOS 触发点
         document.addEventListener("langchange", function () { setTimeout(function () { AOS.refresh(); }, 60); });
-      } else {
-        // 系统偏好减少动效,或 AOS 未加载(离线)→ 兜底直接显示所有内容
-        document.body.classList.add("aos-off");
+        // 兜底:2.5 秒后强制确保所有内容可见(极端情况下 AOS 未触发也不留白)
+        setTimeout(function () {
+          document.querySelectorAll("[data-aos]:not(.aos-animate)").forEach(function (el) {
+            var r = el.getBoundingClientRect();
+            if (r.top < (window.innerHeight || 0)) el.classList.add("aos-animate");
+          });
+        }, 2500);
       }
+      // 否则不加 aos-on:CSS 里 html:not(.aos-on) 规则会让内容始终显示
     })();
   </script>
 </body>

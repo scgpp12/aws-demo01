@@ -614,10 +614,11 @@ footer.sitefoot { text-align: center; color: var(--color-text-faint); font-size:
 .dgm-new-badge { fill: var(--color-primary); }
 .dgm-new-badge-text { fill: #fff; font-weight: 700; }
 
-/* —— AOS 安全兜底 ——
-   1) 关闭动效时(系统偏好/库加载失败)强制显示内容;
-   2) 打印时一律显示,避免被 opacity:0 隐藏。 */
-.aos-off [data-aos] { opacity: 1 !important; transform: none !important; }
+/* —— AOS 安全兜底(关键:内容默认一定可见)——
+   只有当 JS 确认 AOS 正常并在 <html> 上加了 .aos-on 时,才把显示权交给 AOS;
+   否则(CDN 失败/加载慢/系统减少动效/JS 出错)一律强制显示,绝不留白。
+   选择器特异性 + !important 高于 AOS 自身的 opacity:0 规则,稳定生效。 */
+html:not(.aos-on) [data-aos] { opacity: 1 !important; transform: none !important; }
 @media print { [data-aos] { opacity: 1 !important; transform: none !important; } }
 @media (prefers-reduced-motion: reduce) { [data-aos] { opacity: 1 !important; transform: none !important; } }
 
