@@ -143,7 +143,7 @@ def say(openid, text):
         f"<FromUserName><![CDATA[{openid}]]></FromUserName>"
         f"<MsgType><![CDATA[text]]></MsgType><Content><![CDATA[{text}]]></Content></xml>"
     )
-    msg = webhook.wechat.parse_message(xml)
+    msg = webhook.wecom.parse_message(xml)
     return webhook._route(msg)
 
 

@@ -17,15 +17,28 @@ Parameters:
     Type: Number
     Default: 2
     Description: 退课截止（开课前 N 小时）
-  WeChatToken:
+  WeComCorpId:
     Type: String
-    Default: "CHANGE_ME_wechat_token"
-    Description: 微信服务器配置里的 Token（用于 Webhook 验签）。demo 用默认值，上线务必改。
+    Default: ""
+    Description: 企业微信 CorpID（企业ID）。
+  WeComToken:
+    Type: String
+    Default: ""
+    Description: 企业微信自建应用「接收消息」的 Token（验签用）。
     NoEcho: true
+  WeComAesKey:
+    Type: String
+    Default: ""
+    Description: 企业微信 EncodingAESKey（43 位，消息加解密用）。
+    NoEcho: true
+  WeComAgentId:
+    Type: String
+    Default: ""
+    Description: 企业微信自建应用 AgentId。
   TeacherOpenids:
     Type: String
     Default: ""
-    Description: 老师 openid 白名单（逗号分隔）。也可在 Students 表把 role 设为 teacher。
+    Description: 老师 userid 白名单（逗号分隔，企业微信成员 UserId）。也可在 Students 表把 role 设为 teacher。
   BedrockEnabled:
     Type: String
     Default: "true"
@@ -57,7 +70,10 @@ Globals:
         GROUPS_TABLE: !Ref GroupsTable
         ENROLLMENTS_GSI1: GSI1
         CANCEL_DEADLINE_HOURS: !Ref CancelDeadlineHours
-        WECHAT_TOKEN: !Ref WeChatToken
+        WECOM_CORP_ID: !Ref WeComCorpId
+        WECOM_TOKEN: !Ref WeComToken
+        WECOM_AES_KEY: !Ref WeComAesKey
+        WECOM_AGENT_ID: !Ref WeComAgentId
         TEACHER_OPENIDS: !Ref TeacherOpenids
         BEDROCK_ENABLED: !Ref BedrockEnabled
         BEDROCK_MODEL_ID: !Ref BedrockModelId
