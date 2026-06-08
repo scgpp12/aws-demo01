@@ -1,0 +1,194 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  BrightStar (ブライトスター) 培训助手 v2.0（微信 agent 版）
+  微信 Webhook → API Gateway(HTTP API) → Lambda(路由+业务+Bedrock意图) → DynamoDB
+  Region: ap-northeast-1 (Tokyo). 时间存 UTC，展示转 JST。
+
+Parameters:
+  AppName:
+    Type: String
+    Default: brightstar
+  Stage:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+  CancelDeadlineHours:
+    Type: Number
+    Default: 2
+    Description: 退课截止（开课前 N 小时）
+  WeChatToken:
+    Type: String
+    Default: "CHANGE_ME_wechat_token"
+    Description: 微信服务器配置里的 Token（用于 Webhook 验签）。demo 用默认值，上线务必改。
+    NoEcho: true
+  TeacherOpenids:
+    Type: String
+    Default: ""
+    Description: 老师 openid 白名单（逗号分隔）。也可在 Students 表把 role 设为 teacher。
+  BedrockEnabled:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: 是否启用 Bedrock 意图解析；false 时退化为关键词解析（无需 Bedrock 权限也能跑）。
+  BedrockModelId:
+    Type: String
+    Default: "anthropic.claude-3-haiku-20240307-v1:0"
+    Description: 东京区可用的 Bedrock 模型 ID。
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 20
+    MemorySize: 256
+    Architectures: [arm64]
+    Tags:
+      Project: !Ref AppName
+      ManagedBy: sam
+      Stage: !Ref Stage
+    Environment:
+      Variables:
+        APP_NAME: !Ref AppName
+        STAGE: !Ref Stage
+        TZ: Asia/Tokyo
+        STUDENTS_TABLE: !Ref StudentsTable
+        COURSES_TABLE: !Ref CoursesTable
+        ENROLLMENTS_TABLE: !Ref EnrollmentsTable
+        GROUPS_TABLE: !Ref GroupsTable
+        ENROLLMENTS_GSI1: GSI1
+        CANCEL_DEADLINE_HOURS: !Ref CancelDeadlineHours
+        WECHAT_TOKEN: !Ref WeChatToken
+        TEACHER_OPENIDS: !Ref TeacherOpenids
+        BEDROCK_ENABLED: !Ref BedrockEnabled
+        BEDROCK_MODEL_ID: !Ref BedrockModelId
+        # Zoom 凭证（demo 为空壳；上线把 ZOOM_ENABLED 设 true 并配 secret）
+        ZOOM_ENABLED: "false"
+        ZOOM_SECRET_NAME: !Sub "${AppName}/${Stage}/zoom"
+        ZOOM_USER_ID: "me"
+
+Resources:
+  # =========================================================================
+  # DynamoDB —— 4 张表 + 1 GSI（按需计费 + 静态加密）
+  # =========================================================================
+  StudentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AppName}-${Stage}-students"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: { SSEEnabled: true }
+      AttributeDefinitions:
+        - { AttributeName: openid, AttributeType: S }
+      KeySchema:
+        - { AttributeName: openid, KeyType: HASH }
+      Tags:
+        - { Key: Project, Value: !Ref AppName }
+        - { Key: ManagedBy, Value: sam }
+        - { Key: Stage, Value: !Ref Stage }
+
+  CoursesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AppName}-${Stage}-courses"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: { SSEEnabled: true }
+      AttributeDefinitions:
+        - { AttributeName: courseId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: courseId, KeyType: HASH }
+      Tags:
+        - { Key: Project, Value: !Ref AppName }
+        - { Key: ManagedBy, Value: sam }
+        - { Key: Stage, Value: !Ref Stage }
+
+  EnrollmentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AppName}-${Stage}-enrollments"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: { SSEEnabled: true }
+      AttributeDefinitions:
+        - { AttributeName: openid, AttributeType: S }
+        - { AttributeName: courseId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: openid, KeyType: HASH }
+        - { AttributeName: courseId, KeyType: RANGE }
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1                # courseId -> openid（查某课名单）
+          KeySchema:
+            - { AttributeName: courseId, KeyType: HASH }
+            - { AttributeName: openid, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+      Tags:
+        - { Key: Project, Value: !Ref AppName }
+        - { Key: ManagedBy, Value: sam }
+        - { Key: Stage, Value: !Ref Stage }
+
+  GroupsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AppName}-${Stage}-groups"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: { SSEEnabled: true }
+      AttributeDefinitions:
+        - { AttributeName: courseId, AttributeType: S }
+        - { AttributeName: groupId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: courseId, KeyType: HASH }
+        - { AttributeName: groupId, KeyType: RANGE }
+      Tags:
+        - { Key: Project, Value: !Ref AppName }
+        - { Key: ManagedBy, Value: sam }
+        - { Key: Stage, Value: !Ref Stage }
+
+  # =========================================================================
+  # HTTP API（微信 Webhook 入口；无 JWT，靠微信签名校验）
+  # =========================================================================
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: !Ref Stage
+      Tags:
+        Project: !Ref AppName
+        ManagedBy: sam
+        Stage: !Ref Stage
+
+  # =========================================================================
+  # Lambda —— 微信 Webhook 路由 + 业务 + Bedrock 意图
+  # =========================================================================
+  WebhookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AppName}-${Stage}-webhook"
+      CodeUri: src/
+      Handler: handlers.webhook.handler
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref StudentsTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref CoursesTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref EnrollmentsTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref GroupsTable }
+        - Statement:                      # 读 Enrollments GSI1
+            Effect: Allow
+            Action: [dynamodb:Query]
+            Resource: !Sub "${EnrollmentsTable.Arn}/index/GSI1"
+        - Statement:                      # Bedrock 意图解析（东京区）
+            Effect: Allow
+            Action: [bedrock:InvokeModel]
+            Resource: "*"
+        - Statement:                      # Zoom 凭证（上线启用）
+            Effect: Allow
+            Action: [secretsmanager:GetSecretValue]
+            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${Stage}/zoom-*"
+      Events:
+        WeChatVerify:                     # GET：微信服务器 URL 验签
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: GET, Path: "/wechat" }
+        WeChatMessage:                    # POST：接收消息/事件
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: POST, Path: "/wechat" }
+
+Outputs:
+  WeChatWebhookUrl:
+    Description: 填到微信公众平台「服务器配置」的 URL
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/wechat"
+  Region:
+    Value: !Ref AWS::Region

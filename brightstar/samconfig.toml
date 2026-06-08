@@ -1,0 +1,15 @@
+version = 0.1
+
+[default.global.parameters]
+stack_name = "brightstar-dev"
+
+[default.deploy.parameters]
+region = "ap-northeast-1"
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+resolve_s3 = true
+stack_name = "brightstar-dev"
+parameter_overrides = "Stage=dev"
+# 栈级标签：CloudFormation 会把这些标签自动打到栈内每个可打标签的资源上，
+# 便于按标签查找/统一删除。
+tags = "Project=brightstar ManagedBy=sam Stage=dev"
