@@ -101,7 +101,8 @@ def enroll(openid: str, course_kw: str) -> str:
         db.courses().update_item(
             Key={"courseId": course_id},
             UpdateExpression="SET enrolledCount = enrolledCount + :one",
-            ConditionExpression="enrolledCount < capacity",
+            ConditionExpression="enrolledCount < #cap",  # capacity 是 DynamoDB 保留字
+            ExpressionAttributeNames={"#cap": "capacity"},
             ExpressionAttributeValues={":one": 1},
         )
     except ClientError as e:

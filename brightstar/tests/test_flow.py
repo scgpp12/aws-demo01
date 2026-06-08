@@ -50,7 +50,7 @@ class FakeTable:
         it = self.items.setdefault(k, dict(Key))
         # 条件检查
         if ConditionExpression:
-            if not _eval_cond(ConditionExpression, it, vals):
+            if not _eval_cond(ConditionExpression, it, vals, names):
                 from botocore.exceptions import ClientError
                 raise ClientError(
                     {"Error": {"Code": "ConditionalCheckFailedException", "Message": "cond"}},
@@ -105,13 +105,18 @@ def _eval_rhs(rhs, item, vals, names):
     return vals[rhs] if rhs.startswith(":") else item.get(names.get(rhs, rhs))
 
 
-def _eval_cond(cond, item, vals):
-    # 支持 "enrolledCount < capacity" 与 "enrolledCount > :zero"
+def _eval_cond(cond, item, vals, names=None):
+    # 支持 "enrolledCount < #cap" 与 "enrolledCount > :zero"（含名称别名）
+    names = names or {}
     m = re.match(r"^\s*(\S+)\s*([<>])\s*(\S+)\s*$", cond)
     a, op, b = m.groups()
-    av = item.get(a, 0)
-    bv = vals[b] if b.startswith(":") else item.get(b, 0)
-    return av < bv if op == "<" else av > bv
+
+    def resolve(x):
+        if x.startswith(":"):
+            return vals[x]
+        return item.get(names.get(x, x), 0)
+
+    return resolve(a) < resolve(b) if op == "<" else resolve(a) > resolve(b)
 
 
 # --------------------------- 注入假表 ---------------------------

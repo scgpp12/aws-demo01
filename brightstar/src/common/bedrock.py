@@ -55,11 +55,16 @@ def _keyword_parse(text: str) -> dict:
 
 
 def _extract_course(text: str, kw: str) -> str:
-    """粗略抽取课程关键词：去掉触发词，剩下的当课程名。"""
-    t = text
-    for token in ["报名", "我要报", "参加", "取消", "退课", "退报名", "课", "的", "想", "请"]:
-        t = t.replace(token, " ")
-    return t.strip()
+    """抽取课程关键词：只去掉【开头的动作词】，其余原样保留（课程名可能含「课/程」）。"""
+    t = text.strip()
+    for prefix in (
+        "我要报名", "我要报", "报名", "参加", "选课",
+        "取消报名", "退报名", "取消", "退课", "不上了",
+    ):
+        if t.startswith(prefix):
+            t = t[len(prefix):]
+            break
+    return t.strip(" :：的")
 
 
 def _bedrock_parse(text: str) -> dict:

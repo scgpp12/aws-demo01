@@ -67,6 +67,12 @@ def _route(msg: dict) -> str:
         return "目前只支持文字消息哦～\n\n" + business.MENU
 
     text = msg["content"]
+    is_tcmd = any(text.startswith(c) for c in TEACHER_CMDS)
+
+    # ---- 老师命令（白名单）：先于注册流程，老师无需走学员注册 ----
+    if is_tcmd and is_teacher(openid):
+        return teacher.handle(text)
+
     student = business.get_student(openid)
 
     # ---- 注册流程 ----
@@ -75,10 +81,8 @@ def _route(msg: dict) -> str:
     if student.get("status") == "awaiting_name":
         return business.complete_registration(openid, text)
 
-    # ---- 老师命令（白名单）----
-    if any(text.startswith(c) for c in TEACHER_CMDS):
-        if is_teacher(openid):
-            return teacher.handle(text)
+    # ---- 老师命令但非老师（已注册学员）----
+    if is_tcmd:
         return "该指令仅老师可用。"
 
     # ---- 数字快捷 ----
