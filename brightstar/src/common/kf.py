@@ -43,10 +43,13 @@ def _relay(api_path: str, payload: dict = None, method: str = "POST") -> dict:
     body["_secret"] = config.WECOM_SECRET
     body["_method"] = method
     data = json.dumps(body).encode("utf-8")
+    headers = {"Content-Type": "application/json"}
+    if config.WECOM_RELAY_AUTH:
+        headers["X-Relay-Auth"] = config.WECOM_RELAY_AUTH
     req = urllib.request.Request(
         config.WECOM_RELAY_URL.rstrip("/") + api_path,
         data=data,
-        headers={"Content-Type": "application/json"},
+        headers=headers,
         method="POST",
     )
     t0 = time.time()

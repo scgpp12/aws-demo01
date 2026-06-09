@@ -7,8 +7,10 @@ Lambda → 本服务(POST /kf/xxx 或 / ) → 企业微信 qyapi。
 """
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
+import hmac
 import json
 import logging
+import os
 import threading
 import time
 
@@ -17,6 +19,10 @@ from requests.adapters import HTTPAdapter
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 logger = logging.getLogger(__name__)
+
+# 共享密钥：设了 RELAY_AUTH 环境变量后，所有请求必须带匹配的 X-Relay-Auth 头。
+# 留空则不校验（兼容旧部署）。公网暴露(如 Tailscale Funnel)时务必设置。
+RELAY_AUTH = os.environ.get("RELAY_AUTH", "")
 
 # 复用连接：keep-alive + 连接池，跨请求重用同一条到 qyapi 的 TLS 连接
 _session = requests.Session()
@@ -68,6 +74,11 @@ def get_access_token(corp_id, secret):
 class RelayHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         t0 = time.time()
+        # 共享密钥校验（设了 RELAY_AUTH 才生效）
+        if RELAY_AUTH and not hmac.compare_digest(
+            self.headers.get("X-Relay-Auth", ""), RELAY_AUTH
+        ):
+            return self._reply(401, {"error": "unauthorized"})
         length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(length)
         try:

@@ -43,7 +43,12 @@ Parameters:
   WeComRelayUrl:
     Type: String
     Default: ""
-    Description: 中转服务器地址（其 IP 在企业可信IP内），如 http://47.85.165.247:5005
+    Description: 中转服务器地址（其 IP 在企业可信IP内），如 http://47.85.165.247:5005 或 https://xxx.ts.net
+  WeComRelayAuth:
+    Type: String
+    Default: ""
+    Description: 中转共享密钥（X-Relay-Auth）；中转公网暴露时防滥用。留空则不校验。
+    NoEcho: true
   WeComKfOpenKfId:
     Type: String
     Default: ""
@@ -95,6 +100,7 @@ Globals:
         WECOM_AGENT_ID: !Ref WeComAgentId
         WECOM_SECRET: !Ref WeComSecret
         WECOM_RELAY_URL: !Ref WeComRelayUrl
+        WECOM_RELAY_AUTH: !Ref WeComRelayAuth
         WECOM_KF_OPEN_KFID: !Ref WeComKfOpenKfId
         TEACHER_OPENIDS: !Ref TeacherOpenids
         TEACHER_SIGNUP_CODE: !Ref TeacherSignupCode
