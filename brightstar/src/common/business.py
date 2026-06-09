@@ -4,6 +4,7 @@
 面向学员的所有回复均按该语言输出（见 i18n.py）。
 """
 import uuid as _uuid
+from datetime import timedelta
 
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
@@ -96,30 +97,53 @@ def switch_language(openid: str, lang: str) -> str:
 _LOGINCODE_PK = "__logincode__"  # 反向索引：登录码 -> openid
 
 
+def _expired(exp_iso) -> bool:
+    """exp_iso 为空视为未过期（兼容历史无过期码）；否则按 UTC 比较。"""
+    if not exp_iso:
+        return False
+    try:
+        return parse_iso(exp_iso) < now_utc()
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def get_or_create_login_code(openid: str):
-    """返回学员的网页登录码（没有则生成并建反向索引）。未注册返回 None。"""
+    """返回学员的有效网页登录码（无/已过期则重新生成）。未注册返回 None。
+
+    有效期 config.LOGIN_CODE_TTL_DAYS 天（默认 7）。过期会换发新码、删除旧反向索引。
+    """
     s = get_student(openid)
     if not s or s.get("status") != "active":
         return None
     code = s.get("loginCode")
-    if not code:
-        code = _uuid.uuid4().hex[:8].upper()
-        db.students().update_item(
-            Key={"openid": openid},
-            UpdateExpression="SET loginCode = :c",
-            ExpressionAttributeValues={":c": code},
-        )
-        db.students().put_item(Item={"openid": _LOGINCODE_PK + code, "ref": openid})
+    exp = s.get("loginCodeExp")
+    if code and not _expired(exp):
+        return code
+    # 换发：删旧码反向索引（如有），生成新码 + 新有效期
+    if code:
+        db.students().delete_item(Key={"openid": _LOGINCODE_PK + code})
+    code = _uuid.uuid4().hex[:8].upper()
+    new_exp = iso_utc(now_utc() + timedelta(days=config.LOGIN_CODE_TTL_DAYS))
+    db.students().update_item(
+        Key={"openid": openid},
+        UpdateExpression="SET loginCode = :c, loginCodeExp = :e",
+        ExpressionAttributeValues={":c": code, ":e": new_exp},
+    )
+    db.students().put_item(
+        Item={"openid": _LOGINCODE_PK + code, "ref": openid, "exp": new_exp}
+    )
     return code
 
 
 def find_by_login_code(code: str):
-    """登录码 → 学员记录；无效返回 None。"""
+    """登录码 → 学员记录；无效或已过期返回 None。"""
     code = (code or "").strip().upper()
     if not code:
         return None
     m = db.students().get_item(Key={"openid": _LOGINCODE_PK + code}).get("Item")
     if not m or not m.get("ref"):
+        return None
+    if _expired(m.get("exp")):
         return None
     return get_student(m["ref"])
 

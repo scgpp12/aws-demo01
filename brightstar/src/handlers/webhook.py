@@ -110,7 +110,8 @@ def _route(msg: dict) -> str:
     # ---- 网页登录码：发「登录码 / 网页登录 / ログインコード」获取 ----
     if text in ("登录码", "网页登录", "网站登录", "登陆码", "ログインコード", "ログイン", "ログインコードを取得"):
         code = business.get_or_create_login_code(openid)
-        return i18n.T(lang, "login_code_ok", code=code) if code else i18n.T(lang, "login_code_need_reg")
+        return i18n.T(lang, "login_code_ok", code=code, days=config.LOGIN_CODE_TTL_DAYS) \
+            if code else i18n.T(lang, "login_code_need_reg")
 
     # ---- 改名：发「改名 张三」/「名前変更 山田」修正姓名 ----
     for _pre in ("改名", "名前変更"):

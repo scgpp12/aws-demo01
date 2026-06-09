@@ -14,6 +14,9 @@ ENROLLMENTS_GSI1 = os.environ.get("ENROLLMENTS_GSI1", "GSI1")
 # 退课截止：开课前 N 小时（可配置常量）
 CANCEL_DEADLINE_HOURS = int(os.environ.get("CANCEL_DEADLINE_HOURS", "2"))
 
+# 网页登录码有效期（天）；过期后需在微信重新发「登录码」获取
+LOGIN_CODE_TTL_DAYS = int(os.environ.get("LOGIN_CODE_TTL_DAYS", "7"))
+
 # 企业微信
 WECOM_CORP_ID = os.environ.get("WECOM_CORP_ID", "")
 WECOM_TOKEN = os.environ.get("WECOM_TOKEN", "")

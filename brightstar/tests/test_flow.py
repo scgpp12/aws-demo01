@@ -304,12 +304,28 @@ def main():
     # 12) 网页登录码：发码 + 校验
     from common import business as biz
     r = say(S, "登录码")
-    assert "登录码：" in r, r
+    assert "登录码：" in r and "有效期" in r, r
     code = r.split("登录码：", 1)[1].split(chr(10))[0].strip()
     assert biz.find_by_login_code(code) is not None, "码应有效"
     assert biz.find_by_login_code(code.lower()) is not None, "大小写不敏感"
     assert biz.find_by_login_code("NOPECODE") is None, "无效码应拒"
-    assert say(S, "登录码").split("登录码：", 1)[1].split(chr(10))[0].strip() == code, "重复获取应同码"
+    assert say(S, "登录码").split("登录码：", 1)[1].split(chr(10))[0].strip() == code, "未过期重复获取应同码"
+
+    # 12b) 7 天有效期：把有效期改到过去 → 旧码失效，再次获取换发新码
+    past = "2000-01-01T00:00:00Z"
+    biz.db.students().update_item(
+        Key={"openid": biz._LOGINCODE_PK + code},
+        UpdateExpression="SET exp = :e", ExpressionAttributeValues={":e": past})
+    assert biz.find_by_login_code(code) is None, "过期码应失效"
+    biz.db.students().update_item(
+        Key={"openid": S},
+        UpdateExpression="SET loginCodeExp = :e", ExpressionAttributeValues={":e": past})
+    r = say(S, "登录码")
+    newcode = r.split("登录码：", 1)[1].split(chr(10))[0].strip()
+    assert newcode != code, "过期后应换发新码"
+    assert biz.find_by_login_code(newcode) is not None, "新码应有效"
+    assert biz.find_by_login_code(code) is None, "旧码反向索引应已删除"
+    print("[12b] 登录码 7 天有效期 + 过期换发 OK ->", newcode)
     print("[12] 网页登录码 OK ->", code)
 
     print("\n[OK] ALL FLOW TESTS PASSED")
