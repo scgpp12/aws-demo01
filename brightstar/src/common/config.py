@@ -21,6 +21,10 @@ WECOM_AGENT_ID = os.environ.get("WECOM_AGENT_ID", "")
 # 微信客服(kf)：通过中转服务器调企业微信 API（中转IP在可信IP白名单内）
 WECOM_SECRET = os.environ.get("WECOM_SECRET", "")
 WECOM_RELAY_URL = os.environ.get("WECOM_RELAY_URL", "")  # 形如 http://47.85.165.247:5005
+WECOM_KF_OPEN_KFID = os.environ.get("WECOM_KF_OPEN_KFID", "")  # 主动发提醒用
+
+# 老师自助认证口令（学员发「老师认证 <口令>」即可升级为老师）
+TEACHER_SIGNUP_CODE = os.environ.get("TEACHER_SIGNUP_CODE", "")
 
 # 老师 userid 白名单（逗号分隔；企业微信成员 UserId）
 TEACHER_OPENIDS = [

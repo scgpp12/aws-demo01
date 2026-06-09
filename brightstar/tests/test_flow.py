@@ -14,6 +14,7 @@ os.environ.update(
         "BEDROCK_ENABLED": "false",
         "ZOOM_ENABLED": "false",
         "TEACHER_OPENIDS": "oTEACHER",
+        "TEACHER_SIGNUP_CODE": "JOIN2026",
         "STUDENTS_TABLE": "t-students",
         "COURSES_TABLE": "t-courses",
         "ENROLLMENTS_TABLE": "t-enrollments",
@@ -248,6 +249,24 @@ def main():
     assert not any("报名成功" in t for _, t in captured), "历史积压不应被处理"
     assert kfmod.get_cursor(OKF) == "c4"
     print(f"[8] 微信客服(kf) 拉取→处理→回复 + 去重/时效 OK (共回 {len(captured)} 条)")
+
+    # 9) 未注册门禁：新用户查课/报名被挡，不泄露课程
+    r = say("oNEW", "有哪些课")
+    assert "请回复你的【姓名】" in r and "可报名课程" not in r, r
+    print("[9] 未注册门禁 OK")
+
+    # 10) 回复带姓名 + 老师自助认证 + 双重身份
+    r = say(S, "我的课程")
+    assert r.startswith("@张三"), r  # 回复打印学员姓名
+    r = say(S, "老师认证 WRONG")
+    assert "口令不正确" in r, r
+    r = say(S, "老师认证 JOIN2026")
+    assert "已开通老师权限" in r, r
+    r = say(S, "学员列表")            # 升级后能用老师命令
+    assert "学员" in r and "仅老师可用" not in r, r
+    r = say(S, "我的课程")            # 同时仍是学员
+    assert r.startswith("@张三"), r
+    print("[10] 回名字 + 老师认证 + 双重身份 OK")
 
     print("\n[OK] ALL FLOW TESTS PASSED")
 

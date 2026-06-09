@@ -44,6 +44,15 @@ Parameters:
     Type: String
     Default: ""
     Description: 中转服务器地址（其 IP 在企业可信IP内），如 http://47.85.165.247:5005
+  WeComKfOpenKfId:
+    Type: String
+    Default: ""
+    Description: 微信客服账号 open_kfid（开课提醒主动推送用）。
+  TeacherSignupCode:
+    Type: String
+    Default: ""
+    Description: 老师自助认证口令（学员发「老师认证 <口令>」升级为老师）。
+    NoEcho: true
   TeacherOpenids:
     Type: String
     Default: ""
@@ -62,7 +71,7 @@ Globals:
   Function:
     Runtime: python3.12
     Timeout: 20
-    MemorySize: 256
+    MemorySize: 1024            # 提速：CPU 随内存线性增长，加快加解密/网络/冷启动
     Architectures: [arm64]
     Tags:
       Project: !Ref AppName
@@ -85,7 +94,9 @@ Globals:
         WECOM_AGENT_ID: !Ref WeComAgentId
         WECOM_SECRET: !Ref WeComSecret
         WECOM_RELAY_URL: !Ref WeComRelayUrl
+        WECOM_KF_OPEN_KFID: !Ref WeComKfOpenKfId
         TEACHER_OPENIDS: !Ref TeacherOpenids
+        TEACHER_SIGNUP_CODE: !Ref TeacherSignupCode
         BEDROCK_ENABLED: !Ref BedrockEnabled
         BEDROCK_MODEL_ID: !Ref BedrockModelId
         # Zoom 凭证（demo 为空壳；上线把 ZOOM_ENABLED 设 true 并配 secret）
@@ -197,10 +208,6 @@ Resources:
             Effect: Allow
             Action: [dynamodb:Query]
             Resource: !Sub "${EnrollmentsTable.Arn}/index/GSI1"
-        - Statement:                      # 自调用（kf 异步处理）
-            Effect: Allow
-            Action: [lambda:InvokeFunction]
-            Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AppName}-${Stage}-webhook"
         - Statement:                      # Bedrock 意图解析（东京区）
             Effect: Allow
             Action: [bedrock:InvokeModel]
@@ -216,6 +223,29 @@ Resources:
         WeChatMessage:                    # POST：接收消息/事件
           Type: HttpApi
           Properties: { ApiId: !Ref HttpApi, Method: POST, Path: "/wechat" }
+
+  # =========================================================================
+  # Lambda —— 开课前 1 小时提醒（EventBridge 每 10 分钟触发）
+  # =========================================================================
+  ReminderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AppName}-${Stage}-reminder"
+      CodeUri: src/
+      Handler: handlers.reminder.handler
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref CoursesTable }
+        - DynamoDBReadPolicy: { TableName: !Ref EnrollmentsTable }
+        - Statement:
+            Effect: Allow
+            Action: [dynamodb:Query]
+            Resource: !Sub "${EnrollmentsTable.Arn}/index/GSI1"
+      Events:
+        Tick:
+          Type: Schedule
+          Properties:
+            Schedule: "rate(10 minutes)"
+            Description: 开课前1小时提醒扫描
 
 Outputs:
   WeChatWebhookUrl:

@@ -36,6 +36,16 @@ def start_registration(openid: str) -> str:
     return "👋 欢迎加入 BrightStar 培训助手！\n请回复你的【姓名】完成注册。"
 
 
+def promote_teacher(openid: str):
+    """把已注册学员升级为老师（兼具学员身份）。"""
+    db.students().update_item(
+        Key={"openid": openid},
+        UpdateExpression="SET #r = :t",
+        ExpressionAttributeNames={"#r": "role"},
+        ExpressionAttributeValues={":t": "teacher"},
+    )
+
+
 def complete_registration(openid: str, name: str) -> str:
     name = (name or "").strip()
     if not name:

@@ -6,7 +6,6 @@
        事件(enter_agent/菜单点击) | 文本(注册 / 老师命令 / 数字 / AI 意图) → 加密被动回复
 """
 import base64
-import json
 import logging
 import time
 
@@ -35,20 +34,31 @@ def _body(event) -> str:
 
 # ------------------------------- 路由 -------------------------------
 def _dispatch_student(openid: str, intent: str, params: dict) -> str:
+    # 门禁：未完成注册不能查看/预约任何内容
+    student = business.get_student(openid)
+    if not student:
+        return business.start_registration(openid)
+    if student.get("status") != "active":
+        return "请先回复你的【姓名】完成注册后，再查看或报名课程～"
+
+    name = student.get("name") or ""
     course = (params or {}).get("course", "")
     if intent == "list_courses":
-        return business.list_courses()
-    if intent == "my_courses":
-        return business.my_courses(openid)
-    if intent == "next_class":
-        return business.next_class(openid)
-    if intent == "enroll":
-        return business.enroll(openid, course)
-    if intent == "cancel":
-        return business.cancel(openid, course)
-    if intent == "register":
-        return "你已经注册过啦～\n\n" + business.MENU
-    return business.MENU  # help / 未识别 → 回菜单兜底
+        body = business.list_courses()
+    elif intent == "my_courses":
+        body = business.my_courses(openid)
+    elif intent == "next_class":
+        body = business.next_class(openid)
+    elif intent == "enroll":
+        body = business.enroll(openid, course)
+    elif intent == "cancel":
+        body = business.cancel(openid, course)
+    elif intent == "register":
+        body = "你已经注册过啦～\n\n" + business.MENU
+    else:
+        body = business.MENU  # help / 未识别 → 回菜单兜底
+    # 回复带上学员姓名
+    return f"@{name}\n{body}" if name else body
 
 
 def _route(msg: dict) -> str:
@@ -82,6 +92,16 @@ def _route(msg: dict) -> str:
         return business.start_registration(openid)
     if student.get("status") == "awaiting_name":
         return business.complete_registration(openid, text)
+
+    # ---- 老师自助认证：发「老师认证 <口令>」升级为老师（兼具学员身份）----
+    if text.startswith("老师认证"):
+        code = text[len("老师认证"):].strip()
+        if config.TEACHER_SIGNUP_CODE and code == config.TEACHER_SIGNUP_CODE:
+            business.promote_teacher(openid)
+            return (f"✅ 已开通老师权限，{student.get('name','')}！\n"
+                    "你现在既是老师也是学员：可建课/分组，也能报名上课。\n"
+                    "发「老师帮助」查看管理命令。")
+        return "老师认证口令不正确。"
 
     # ---- 老师命令但非老师（已注册学员）----
     if is_tcmd:
@@ -139,28 +159,8 @@ def handle_kf(open_kfid: str, token: str):
             break
 
 
-def _invoke_async(context, open_kfid: str, token: str):
-    """自调用一个异步实例去处理 kf 消息，使回调本身能立刻返回 200。"""
-    import boto3
-
-    try:
-        boto3.client("lambda").invoke(
-            FunctionName=context.function_name,
-            InvocationType="Event",  # 异步
-            Payload=json.dumps({"kf_async": True, "open_kfid": open_kfid, "token": token}).encode(),
-        )
-    except Exception:  # noqa: BLE001
-        log.exception("async self-invoke failed; 退化为同步处理")
-        handle_kf(open_kfid, token)
-
-
 # ------------------------------- 入口 -------------------------------
 def handler(event, context):
-    # 异步自调用入口：实际拉取/回复在这里做（回调已快速返回）
-    if isinstance(event, dict) and event.get("kf_async"):
-        handle_kf(event.get("open_kfid", ""), event.get("token", ""))
-        return {"ok": True}
-
     method = event["requestContext"]["http"]["method"]
     qs = event.get("queryStringParameters") or {}
     msg_sig = qs.get("msg_signature", "")
@@ -187,9 +187,9 @@ def handler(event, context):
         plain_xml, _ = wecom_crypto.decrypt(encrypt)
         msg = wecom.parse_message(plain_xml)
 
-        # 微信客服事件：异步去拉取/回复，回调本身立刻回空 200（避免企业微信超时重试）
+        # 微信客服事件：同步拉取/回复（1024MB 下约 1.5~2.5s，<5s）；msgid 去重防重试重复
         if msg["msgType"] == "event" and msg.get("event") == "kf_msg_or_event":
-            _invoke_async(context, msg.get("openKfId", ""), msg.get("kfToken", ""))
+            handle_kf(msg.get("openKfId", ""), msg.get("kfToken", ""))
             return wecom.http(200, "")
 
         # 自建应用消息：被动加密回复
