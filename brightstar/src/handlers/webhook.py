@@ -9,7 +9,7 @@ import base64
 import logging
 import time
 
-from common import bedrock, business, config, kf, teacher, wecom, wecom_crypto
+from common import bedrock, business, config, i18n, kf, teacher, wecom, wecom_crypto
 from common.auth import is_teacher
 
 log = logging.getLogger()
@@ -36,27 +36,28 @@ def _body(event) -> str:
 def _dispatch_student(openid: str, intent: str, params: dict) -> str:
     # 门禁：未完成注册不能查看/预约任何内容
     student = business.get_student(openid)
-    if not student:
+    if not student or student.get("status") == "awaiting_lang":
         return business.start_registration(openid)
+    lang = business.get_lang(student)
     if student.get("status") != "active":
-        return "请先回复你的【姓名】完成注册后，再查看或报名课程～"
+        return i18n.T(lang, "gate_not_active")
 
     name = student.get("name") or ""
     course = (params or {}).get("course", "")
     if intent == "list_courses":
-        body = business.list_courses()
+        body = business.list_courses(lang)
     elif intent == "my_courses":
-        body = business.my_courses(openid)
+        body = business.my_courses(openid, lang)
     elif intent == "next_class":
-        body = business.next_class(openid)
+        body = business.next_class(openid, lang)
     elif intent == "enroll":
-        body = business.enroll(openid, course)
+        body = business.enroll(openid, course, lang)
     elif intent == "cancel":
-        body = business.cancel(openid, course)
+        body = business.cancel(openid, course, lang)
     elif intent == "register":
-        body = "你已经注册过啦～\n\n" + business.MENU
+        body = i18n.T(lang, "already_registered") + business.menu(lang)
     else:
-        body = business.MENU  # help / 未识别 → 回菜单兜底
+        body = business.menu(lang)  # help / 未识别 → 回菜单兜底
     # 回复带上学员姓名
     return f"@{name}\n{body}" if name else body
 
@@ -68,15 +69,17 @@ def _route(msg: dict) -> str:
     if msg["msgType"] == "event":
         ev = (msg.get("event", "") or "").lower()
         if ev in ("subscribe", "enter_agent"):
-            return business.start_registration(openid) if not business.get_student(openid) else business.MENU
+            s = business.get_student(openid)
+            return business.start_registration(openid) if not s else business.menu(business.get_lang(s))
         if ev == "click":
             intent = MENU_KEY_TO_INTENT.get(msg.get("eventKey", ""), "help")
             return _dispatch_student(openid, intent, {})
-        return business.MENU
+        return business.menu(business.get_lang(business.get_student(openid)))
 
     # ---- 非文本 ----
     if msg["msgType"] != "text":
-        return "目前只支持文字消息哦～\n\n" + business.MENU
+        lang = business.get_lang(business.get_student(openid))
+        return i18n.T(lang, "only_text") + business.menu(lang)
 
     text = msg["content"]
     is_tcmd = any(text.startswith(c) for c in TEACHER_CMDS)
@@ -87,21 +90,32 @@ def _route(msg: dict) -> str:
 
     student = business.get_student(openid)
 
-    # ---- 注册流程 ----
+    # ---- 注册流程：① 选语言 ② 填姓名 ----
     if not student:
         return business.start_registration(openid)
+    if student.get("status") == "awaiting_lang":
+        return business.set_language(openid, text)
     if student.get("status") == "awaiting_name":
         return business.complete_registration(openid, text)
 
-    # ---- 网页登录码：发「登录码 / 网页登录」获取 ----
-    if text in ("登录码", "网页登录", "网站登录", "登陆码"):
-        code = business.get_or_create_login_code(openid)
-        return f"🔑 你的网页登录码：{code}\n在课程网站登录页输入它即可（请勿外传）。" if code else \
-            "请先完成注册（回复姓名）后再获取登录码。"
+    lang = business.get_lang(student)
 
-    # ---- 改名：发「改名 张三」修正姓名 ----
-    if text.startswith("改名"):
-        return business.rename(openid, text[len("改名"):])
+    # ---- 切换语言 ----
+    if text in ("语言", "切换语言", "言語", "言語切替", "language", "Language", "lang"):
+        return i18n.T(lang, "lang_menu")
+    _l = i18n.norm_lang(text)
+    if _l and text not in ("1", "2"):  # 用「中文/日本語」明确切换(避免与数字菜单冲突)
+        return business.switch_language(openid, _l)
+
+    # ---- 网页登录码：发「登录码 / 网页登录 / ログインコード」获取 ----
+    if text in ("登录码", "网页登录", "网站登录", "登陆码", "ログインコード", "ログイン", "ログインコードを取得"):
+        code = business.get_or_create_login_code(openid)
+        return i18n.T(lang, "login_code_ok", code=code) if code else i18n.T(lang, "login_code_need_reg")
+
+    # ---- 改名：发「改名 张三」/「名前変更 山田」修正姓名 ----
+    for _pre in ("改名", "名前変更"):
+        if text.startswith(_pre):
+            return business.rename(openid, text[len(_pre):])
 
     # ---- 老师自助认证：发「老师认证 <口令>」升级为老师（兼具学员身份）----
     if text.startswith("老师认证"):
@@ -121,7 +135,7 @@ def _route(msg: dict) -> str:
     if text in business.NUM_TO_INTENT:
         return _dispatch_student(openid, business.NUM_TO_INTENT[text], {})
 
-    # ---- AI 意图解析（自由打字）----
+    # ---- AI 意图解析（自由打字，中日关键词兜底）----
     parsed = bedrock.parse_intent(text)
     return _dispatch_student(openid, parsed["intent"], parsed["params"])
 
@@ -161,7 +175,8 @@ def handle_kf(open_kfid: str, token: str):
             if is_text:
                 reply = _kf_reply_for(uid, (m.get("text", {}) or {}).get("content", "").strip())
             else:  # enter_session
-                reply = business.start_registration(uid) if not business.get_student(uid) else business.MENU
+                su = business.get_student(uid)
+                reply = business.start_registration(uid) if not su else business.menu(business.get_lang(su))
             kf.send_text(open_kfid, uid, reply)
         cursor = resp.get("next_cursor", cursor)
         kf.set_cursor(open_kfid, cursor)

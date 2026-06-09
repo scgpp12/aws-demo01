@@ -155,9 +155,10 @@ def say(openid, text):
     return webhook._route(msg)
 
 
-def register(openid, name):
-    """新用户两步注册：首条消息触发提示，第二条提供姓名。"""
-    say(openid, "你好")        # 触发「请回复姓名」
+def register(openid, name, lang="2"):
+    """新用户三步注册：① 触发 → ② 选语言(默认测试用 2=中文) → ③ 提供姓名。"""
+    say(openid, "你好")        # → 选择语言
+    say(openid, lang)          # 2=中文 → 请回复姓名
     return say(openid, name)   # 完成注册
 
 
@@ -165,12 +166,21 @@ def register(openid, name):
 def main():
     S, T = "oSTUDENT", "oTEACHER"
 
-    # 1) 学员注册流程
+    # 1) 学员注册流程（选语言 → 填姓名）
     r = say(S, "你好")
+    assert "请选择语言" in r and "日本語" in r, r
+    r = say(S, "2")  # 选中文
     assert "请回复你的【姓名】" in r, r
     r = say(S, "张三")
     assert "注册成功，张三" in r, r
-    print("[1] 注册流程 OK")
+    print("[1] 注册流程(双语选择) OK")
+
+    # 1b) 默认日语：新用户直接发姓名(未选语言)→ 走日语注册
+    r = say("oJP", "你好")
+    assert "言語" in r, r
+    r = say("oJP", "山田太郎")  # 未选语言,直接发名 → 默认日语完成
+    assert "登録完了" in r and "山田太郎" in r and "マイ講座" in r, r
+    print("[1b] 默认日语注册 OK")
 
     # 2) 老师注册 + 建课 + 发布(Zoom 桩)
     register(T, "李老师")  # 老师两步注册
@@ -228,8 +238,11 @@ def main():
     pages = iter([
         page("c1", [{"msgid": "m1", "send_time": NOW, "external_userid": "wmKF1",
                      "msgtype": "event", "origin": 4, "event": {"event_type": "enter_session"}}]),
+        # 选语言：2=中文
         page("c2", [{"msgid": "m2", "send_time": NOW, "external_userid": "wmKF1",
-                     "msgtype": "text", "origin": 3, "text": {"content": "客服李四"}}]),
+                     "msgtype": "text", "origin": 3, "text": {"content": "2"}}]),
+        page("c2b", [{"msgid": "m2b", "send_time": NOW, "external_userid": "wmKF1",
+                      "msgtype": "text", "origin": 3, "text": {"content": "客服李四"}}]),
         page("c3", [{"msgid": "m3", "send_time": NOW, "external_userid": "wmKF1",
                      "msgtype": "text", "origin": 3, "text": {"content": "有哪些课"}}]),
         # 重试：重复返回 m3（旧 cursor）→ 应被 msgid 去重，不再回复
@@ -241,8 +254,9 @@ def main():
     ])
     kfmod.sync_msg = lambda token, cursor, okf, limit=100: next(pages)
     OKF = "wkJRdemo"
-    for _ in range(5):
+    for _ in range(6):
         webhook.handle_kf(OKF, "TK")
+    assert sum("请选择语言" in t for _, t in captured) == 1, captured
     assert sum("请回复你的【姓名】" in t for _, t in captured) == 1, captured
     assert sum("注册成功，客服李四" in t for _, t in captured) == 1, captured
     assert sum("Python入门" in t and "可报名" in t for _, t in captured) == 1, captured  # 列课只1次(去重)
@@ -250,9 +264,9 @@ def main():
     assert kfmod.get_cursor(OKF) == "c4"
     print(f"[8] 微信客服(kf) 拉取→处理→回复 + 去重/时效 OK (共回 {len(captured)} 条)")
 
-    # 9) 未注册门禁：新用户查课/报名被挡，不泄露课程
+    # 9) 未注册门禁：新用户查课/报名被挡，不泄露课程(先让其选语言)
     r = say("oNEW", "有哪些课")
-    assert "请回复你的【姓名】" in r and "可报名课程" not in r, r
+    assert "请选择语言" in r and "可报名课程" not in r, r
     print("[9] 未注册门禁 OK")
 
     # 10) 回复带姓名 + 老师自助认证 + 双重身份
@@ -269,7 +283,8 @@ def main():
     print("[10] 回名字 + 老师认证 + 双重身份 OK")
 
     # 11) 姓名校验（拒绝问候语）+ 改名
-    say("oBad", "x")                       # 触发注册
+    say("oBad", "x")                       # 触发注册 → 选语言
+    say("oBad", "2")                       # 选中文 → 请回复姓名
     r = say("oBad", "你好")                # "你好"不能当姓名
     assert "真实姓名" in r, r
     r = say("oBad", "王小明")              # 合法
@@ -278,7 +293,13 @@ def main():
     assert "格式" in r, r
     r = say("oBad", "改名 王大明")         # 合法改名
     assert "已改名为：王大明" in r, r
-    print("[11] 姓名校验 + 改名 OK")
+    r = say("oBad", "言語")                # 切换语言菜单(双语)
+    assert "日本語" in r, r
+    r = say("oBad", "日本語")              # 切到日语
+    assert "日本語に切り替え" in r, r
+    r = say("oBad", "中文")                # 切回中文
+    assert "已切换为中文" in r, r
+    print("[11] 姓名校验 + 改名 + 切换语言 OK")
 
     # 12) 网页登录码：发码 + 校验
     from common import business as biz

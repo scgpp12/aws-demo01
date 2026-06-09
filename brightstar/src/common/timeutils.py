@@ -35,8 +35,8 @@ def fmt_jst(iso: str) -> str:
     return to_jst(parse_iso(iso)).strftime("%Y-%m-%d %H:%M (JST)")
 
 
-def fmt_jst_span(iso: str, duration_min) -> str:
-    """开始–结束时间段 + 时长，如 2026-06-16 10:00–11:30 (JST·90分钟)。"""
+def fmt_jst_span(iso: str, duration_min, lang: str = "zh") -> str:
+    """开始–结束时间段 + 时长，如 2026-06-16 10:00–11:30 (JST·90分钟/分)。"""
     if not iso:
         return ""
     start = to_jst(parse_iso(iso))
@@ -47,4 +47,5 @@ def fmt_jst_span(iso: str, duration_min) -> str:
     if dur <= 0:
         return start.strftime("%Y-%m-%d %H:%M (JST)")
     end = start + timedelta(minutes=dur)
-    return f"{start.strftime('%Y-%m-%d %H:%M')}–{end.strftime('%H:%M')} (JST·{dur}分钟)"
+    unit = "分" if lang == "ja" else "分钟"
+    return f"{start.strftime('%Y-%m-%d %H:%M')}–{end.strftime('%H:%M')} (JST·{dur}{unit})"

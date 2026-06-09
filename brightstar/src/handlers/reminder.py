@@ -12,7 +12,7 @@ from datetime import timedelta
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
-from common import config, db, kf
+from common import business, config, db, i18n, kf
 from common.timeutils import fmt_jst, now_utc, parse_iso
 
 log = logging.getLogger()
@@ -46,12 +46,8 @@ def handler(event, context):
         except ClientError:
             continue
 
-        msg = (
-            "⏰ 上课提醒\n"
-            f"你报名的「{c['title']}」将在 1 小时后开始\n"
-            f"🕒 {fmt_jst(c['startTime'])}\n"
-            f"🔗 Zoom：{c.get('zoomJoinUrl', '(见课程详情)')}"
-        )
+        when = fmt_jst(c["startTime"])
+        join = c.get("zoomJoinUrl") or "(see course details)"
         rows = db.enrollments().query(
             IndexName=config.ENROLLMENTS_GSI1,
             KeyConditionExpression=Key("courseId").eq(c["courseId"]),
@@ -59,6 +55,8 @@ def handler(event, context):
         for e in rows:
             if e.get("status") != "enrolled":
                 continue
+            lang = business.get_lang(business.get_student(e["openid"]))
+            msg = i18n.T(lang, "reminder", title=c["title"], when=when, join=join)
             r = kf.send_text(okf, e["openid"], msg)
             if r.get("errcode") == 0:
                 sent += 1
