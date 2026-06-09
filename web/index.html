@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BrightStar · AWS 课程</title>
+  <style>
+    :root { --bg:#0f172a; --card:#1e293b; --accent:#38bdf8; --text:#e2e8f0; --muted:#94a3b8; --err:#ef4444; }
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:880px;margin:0 auto;padding:24px 16px}
+    .card{background:var(--card);border:1px solid #334155;border-radius:14px;padding:22px;margin:14px 0}
+    h1{color:var(--accent);font-size:20px;margin:0 0 4px} .muted{color:var(--muted);font-size:14px}
+    input{width:100%;padding:12px;border-radius:10px;border:1px solid #334155;background:#0b1220;color:var(--text);font-size:16px;letter-spacing:2px;text-transform:uppercase}
+    button{width:100%;margin-top:12px;padding:12px;border:0;border-radius:10px;background:var(--accent);color:#04263a;font-weight:700;font-size:16px;cursor:pointer}
+    button:disabled{opacity:.5}
+    .err{color:#fca5a5;margin-top:10px;font-size:14px;min-height:18px}
+    .topbar{display:flex;align-items:center;gap:10px} .topbar .sp{margin-left:auto}
+    .ghost{width:auto;background:#334155;color:var(--text);padding:8px 14px;font-size:13px}
+    .lesson{display:block;text-decoration:none;color:var(--text);background:#0b1220;border:1px solid #334155;border-radius:10px;padding:14px;margin:10px 0}
+    .lesson b{color:var(--accent)} .hidden{display:none}
+    .badge{display:inline-block;background:#064e3b;color:#6ee7b7;border-radius:999px;padding:2px 10px;font-size:12px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- 登录 -->
+    <div id="loginView" class="card" style="max-width:420px;margin:60px auto">
+      <h1>✦ BrightStar AWS 课程</h1>
+      <p class="muted">请输入你的<strong>网页登录码</strong>。<br>在企业微信里给「BrightStar 培训助手」发「<strong>登录码</strong>」即可获取。</p>
+      <input id="code" placeholder="例如 C5BE59A2" autocomplete="off" />
+      <button id="loginBtn" onclick="login()">登录</button>
+      <div id="err" class="err"></div>
+    </div>
+
+    <!-- 课程（登录后） -->
+    <div id="appView" class="hidden">
+      <div class="card topbar">
+        <h1>✦ AWS 课程</h1>
+        <span class="sp"></span>
+        <span class="muted">欢迎，<b id="who"></b> <span id="roleBadge" class="badge hidden">老师</span></span>
+        <button class="ghost" onclick="logout()">退出</button>
+      </div>
+      <div class="card">
+        <p class="muted">学习模块（占位，可逐步替换为真实课程内容）：</p>
+        <a class="lesson" href="#"><b>第 1 课</b> · AWS 基础与 S3 对象存储</a>
+        <a class="lesson" href="#"><b>第 2 课</b> · 计算服务 EC2 / Lambda</a>
+        <a class="lesson" href="#"><b>第 3 课</b> · 解耦 SQS / SNS / Kinesis</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 部署后无需改：指向 brightstar 后端
+    const API = "https://56fby26q7b.execute-api.ap-northeast-1.amazonaws.com/dev/web/login";
+    const KEY = "bs_session";
+
+    function show(user){
+      document.getElementById("loginView").classList.add("hidden");
+      document.getElementById("appView").classList.remove("hidden");
+      document.getElementById("who").textContent = user.name || "学员";
+      document.getElementById("roleBadge").classList.toggle("hidden", user.role !== "teacher");
+    }
+    function logout(){ sessionStorage.removeItem(KEY); location.reload(); }
+
+    async function login(){
+      const code = document.getElementById("code").value.trim();
+      const err = document.getElementById("err"); const btn = document.getElementById("loginBtn");
+      err.textContent = ""; if(!code){ err.textContent="请输入登录码"; return; }
+      btn.disabled = true; btn.textContent = "登录中…";
+      try{
+        const r = await fetch(API, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})});
+        const d = await r.json();
+        if(d.ok){ sessionStorage.setItem(KEY, JSON.stringify({code, name:d.name, role:d.role})); show(d); }
+        else { err.textContent = d.message || "登录码无效"; }
+      }catch(e){ err.textContent = "网络错误，请重试"; }
+      finally{ btn.disabled=false; btn.textContent="登录"; }
+    }
+    document.getElementById("code").addEventListener("keydown",e=>{ if(e.key==="Enter") login(); });
+
+    // 已登录则直接进入
+    const saved = sessionStorage.getItem(KEY);
+    if(saved){ try{ show(JSON.parse(saved)); }catch(e){} }
+  </script>
+</body>
+</html>
