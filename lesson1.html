@@ -527,5 +527,27 @@
       // 否则不加 aos-on:CSS 里 html:not(.aos-on) 规则会让内容始终显示
     })();
   </script>
+
+  <!-- ===== 登录者信息悬浮条（显示姓名，供成绩/问卷计入） ===== -->
+  <div id="bsUserBar" style="position:fixed;right:14px;bottom:14px;z-index:9999;
+       background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:999px;
+       padding:8px 14px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);display:none;
+       font-family:-apple-system,'Microsoft YaHei',sans-serif">
+    👤 <b id="bsUserName">学员</b>
+    <a href="survey.html" style="color:#38bdf8;text-decoration:none;margin-left:10px">课后问卷</a>
+    <a href="#" id="bsLogout" style="color:#94a3b8;text-decoration:none;margin-left:10px">退出</a>
+  </div>
+  <script>
+    (function(){
+      var s; try{ s = JSON.parse(sessionStorage.getItem("bs_session")||"null"); }catch(e){}
+      if(s && s.name){
+        document.getElementById("bsUserName").textContent = s.name + (s.role==="teacher"?"（老师）":"");
+        document.getElementById("bsUserBar").style.display = "block";
+      }
+      document.getElementById("bsLogout").onclick = function(e){
+        e.preventDefault(); sessionStorage.removeItem("bs_session"); location.href="index.html";
+      };
+    })();
+  </script>
 </body>
 </html>

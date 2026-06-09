@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 登录拦截 -->
+  <script>if(!sessionStorage.getItem("bs_session")){location.replace("index.html");}</script>
+  <title>课后问卷 · 第1课</title>
+  <style>
+    :root{--bg:#0f172a;--card:#1e293b;--accent:#38bdf8;--text:#e2e8f0;--muted:#94a3b8}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"Microsoft YaHei",sans-serif}
+    .wrap{max-width:640px;margin:0 auto;padding:20px 16px}
+    .card{background:var(--card);border:1px solid #334155;border-radius:14px;padding:20px;margin:14px 0}
+    h1{color:var(--accent);font-size:20px;margin:0 0 4px} .muted{color:var(--muted);font-size:14px}
+    label{display:block;margin:14px 0 6px;font-weight:600}
+    select,textarea,input{width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0b1220;color:var(--text);font-size:15px}
+    .opts label{display:inline-flex;align-items:center;gap:6px;font-weight:400;margin:6px 14px 0 0}
+    button{margin-top:16px;padding:12px;border:0;border-radius:10px;background:var(--accent);color:#04263a;font-weight:700;font-size:16px;cursor:pointer;width:100%}
+    button:disabled{opacity:.5} .msg{margin-top:10px;min-height:18px} .ok{color:#6ee7b7} .err{color:#fca5a5}
+    a{color:var(--accent)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>📝 课后问卷 · 第1课 S3</h1>
+      <p class="muted">填写人：<b id="who">学员</b>（结果将计入你的记录）</p>
+    </div>
+    <div class="card">
+      <label>1. 本节课难度如何？</label>
+      <div class="opts" id="q_difficulty">
+        <label><input type="radio" name="difficulty" value="偏简单">偏简单</label>
+        <label><input type="radio" name="difficulty" value="适中">适中</label>
+        <label><input type="radio" name="difficulty" value="偏难">偏难</label>
+      </div>
+      <label>2. 你对本节内容的掌握程度（1-5）</label>
+      <select id="q_master">
+        <option value="">请选择</option>
+        <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+      </select>
+      <label>3. 意见与建议（选填）</label>
+      <textarea id="q_feedback" rows="3" placeholder="想多讲哪部分 / 哪里没听懂…"></textarea>
+      <button id="btn" onclick="submit()">提交问卷</button>
+      <div id="msg" class="msg"></div>
+      <p class="muted" style="margin-top:14px"><a href="lesson1.html">← 返回课程</a></p>
+    </div>
+  </div>
+  <script>
+    const API = "https://56fby26q7b.execute-api.ap-northeast-1.amazonaws.com/dev/web/submit";
+    const s = JSON.parse(sessionStorage.getItem("bs_session") || "null");
+    if (s && s.name) document.getElementById("who").textContent = s.name;
+
+    async function submit(){
+      const msg = document.getElementById("msg"), btn = document.getElementById("btn");
+      const diff = (document.querySelector('input[name=difficulty]:checked')||{}).value || "";
+      const master = document.getElementById("q_master").value;
+      const fb = document.getElementById("q_feedback").value.trim();
+      msg.className="msg"; msg.textContent="";
+      if(!diff || !master){ msg.className="msg err"; msg.textContent="请完成第 1、2 题"; return; }
+      btn.disabled=true; btn.textContent="提交中…";
+      try{
+        const r = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({code:s.code, kind:"survey", refId:"lesson1",
+            data:{难度:diff, 掌握度:master, 建议:fb}})});
+        const d = await r.json();
+        if(d.ok){ msg.className="msg ok"; msg.textContent="✅ 已提交，谢谢 "+(d.name||"")+"！"; btn.textContent="已提交"; }
+        else { msg.className="msg err"; msg.textContent=d.message||"提交失败"; btn.disabled=false; btn.textContent="提交问卷"; }
+      }catch(e){ msg.className="msg err"; msg.textContent="网络错误，请重试"; btn.disabled=false; btn.textContent="提交问卷"; }
+    }
+  </script>
+</body>
+</html>
