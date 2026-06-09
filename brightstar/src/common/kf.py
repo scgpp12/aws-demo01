@@ -49,11 +49,14 @@ def _relay(api_path: str, payload: dict = None, method: str = "POST") -> dict:
         headers={"Content-Type": "application/json"},
         method="POST",
     )
+    t0 = time.time()
     try:
         with urllib.request.urlopen(req, timeout=15) as r:  # noqa: S310
-            return json.loads(r.read().decode("utf-8"))
+            out = json.loads(r.read().decode("utf-8"))
+        log.info("kf relay %s: %.0fms", api_path, (time.time() - t0) * 1000)
+        return out
     except Exception as e:  # noqa: BLE001
-        log.error("kf relay %s error: %s", api_path, e)
+        log.error("kf relay %s error after %.0fms: %s", api_path, (time.time() - t0) * 1000, e)
         return {"errcode": -1, "errmsg": str(e)}
 
 
