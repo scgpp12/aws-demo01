@@ -17,11 +17,9 @@
   };
 
   /* ---------- 当前状态 ---------- */
-  // 优先用上次保存的语言;没有则按浏览器语言猜(日语→ja,否则→zh)
+  // 优先用上次保存的语言;没有则默认日语(可在顶栏🌐切换中文)
   let lang = localStorage.getItem(LS.lang);
-  if (lang !== "zh" && lang !== "ja") {
-    lang = (navigator.language || "").toLowerCase().startsWith("ja") ? "ja" : "zh";
-  }
+  if (lang !== "zh" && lang !== "ja") lang = "ja";
 
   /* ---------- 工具:按 "a.b.c" 路径取值 ---------- */
   function getPath(obj, path) {

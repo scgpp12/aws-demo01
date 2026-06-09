@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>BrightStar · AWS 课程登录</title>
+  <title>BrightStar · AWS 講座ログイン / 课程登录</title>
   <style>
     :root { --bg:#0f172a; --card:#1e293b; --accent:#38bdf8; --text:#e2e8f0; --muted:#94a3b8; }
     *{box-sizing:border-box} body{margin:0;font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
@@ -18,10 +18,12 @@
 </head>
 <body>
   <div class="card">
-    <h1>✦ BrightStar AWS 课程</h1>
-    <p class="muted">请输入你的<strong>网页登录码</strong>。<br>在企业微信里给「BrightStar 培训助手」发「<strong>登录码</strong>」即可获取。</p>
-    <input id="code" placeholder="例如 C5BE59A2" autocomplete="off" />
-    <button id="btn" onclick="login()">登录</button>
+    <h1>✦ BrightStar AWS 講座 / 课程</h1>
+    <p class="muted"><strong>ログインコード</strong>を入力してください。<br>
+    WeChatの「BrightStar 研修アシスタント」に「<strong>ログインコード</strong>」と送ると取得できます。</p>
+    <p class="muted" style="opacity:.75">请输入<strong>网页登录码</strong>：在微信里给「BrightStar 培训助手」发「<strong>登录码</strong>」即可获取。</p>
+    <input id="code" placeholder="例 / 例如 C5BE59A2" autocomplete="off" />
+    <button id="btn" onclick="login()">ログイン / 登录</button>
     <div id="err" class="err"></div>
   </div>
   <script>
@@ -33,15 +35,15 @@
     async function login(){
       const code = document.getElementById("code").value.trim();
       const err = document.getElementById("err"), btn = document.getElementById("btn");
-      err.textContent=""; if(!code){ err.textContent="请输入登录码"; return; }
-      btn.disabled=true; btn.textContent="登录中…";
+      err.textContent=""; if(!code){ err.textContent="コードを入力してください / 请输入登录码"; return; }
+      btn.disabled=true; btn.textContent="ログイン中… / 登录中…";
       try{
         const r = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})});
         const d = await r.json();
         if(d.ok){ sessionStorage.setItem(KEY, JSON.stringify({code,name:d.name,role:d.role})); location.href="lesson1.html"; }
-        else { err.textContent = d.message || "登录码无效"; }
-      }catch(e){ err.textContent="网络错误，请重试"; }
-      finally{ btn.disabled=false; btn.textContent="登录"; }
+        else { err.textContent = d.message || "コードが無効です / 登录码无效"; }
+      }catch(e){ err.textContent="通信エラー、再試行してください / 网络错误，请重试"; }
+      finally{ btn.disabled=false; btn.textContent="ログイン / 登录"; }
     }
     document.getElementById("code").addEventListener("keydown",e=>{ if(e.key==="Enter") login(); });
   </script>
