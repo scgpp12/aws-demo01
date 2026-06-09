@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 登录拦截：未登录则回登录页 -->
+  <script>if(!sessionStorage.getItem("bs_session")){location.replace("index.html");}</script>
   <title>AWS 入门教学讲义 · 第1课 S3</title>
   <link rel="stylesheet" href="assets/styles.css" />
   <!-- AOS 滚动淡入(CDN);离线时此 CSS 不加载,内容照常显示 -->

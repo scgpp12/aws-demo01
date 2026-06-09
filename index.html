@@ -1,24 +1,49 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+<!doctype html>
+<html lang="zh">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AWS 入门教学讲义</title>
-  <!-- 临时首页:自动进入第1课。第二步会替换为正式首页(开篇 + 课程总览)。 -->
-  <meta http-equiv="refresh" content="0; url=lesson1.html" />
-  <link rel="canonical" href="lesson1.html" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BrightStar · AWS 课程登录</title>
   <style>
-    body{font-family:system-ui,"Hiragino Sans","Microsoft YaHei",sans-serif;
-      background:#f7f8fa;color:#232f3e;display:flex;min-height:100vh;
-      align-items:center;justify-content:center;margin:0;text-align:center}
-    a{color:#ec7211;font-weight:700}
+    :root { --bg:#0f172a; --card:#1e293b; --accent:#38bdf8; --text:#e2e8f0; --muted:#94a3b8; }
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+    .card{background:var(--card);border:1px solid #334155;border-radius:14px;padding:24px;max-width:420px;margin:64px auto}
+    h1{color:var(--accent);font-size:20px;margin:0 0 6px}
+    .muted{color:var(--muted);font-size:14px;line-height:1.6}
+    input{width:100%;margin-top:14px;padding:12px;border-radius:10px;border:1px solid #334155;background:#0b1220;color:var(--text);font-size:16px;letter-spacing:2px;text-transform:uppercase}
+    button{width:100%;margin-top:12px;padding:12px;border:0;border-radius:10px;background:var(--accent);color:#04263a;font-weight:700;font-size:16px;cursor:pointer}
+    button:disabled{opacity:.5}
+    .err{color:#fca5a5;margin-top:10px;font-size:14px;min-height:18px}
   </style>
 </head>
 <body>
-  <div>
-    <p>正在进入课程… / 講座へ移動中…</p>
-    <p><a href="lesson1.html">如果没有自动跳转,请点这里进入第1课 / こちらをクリック</a></p>
+  <div class="card">
+    <h1>✦ BrightStar AWS 课程</h1>
+    <p class="muted">请输入你的<strong>网页登录码</strong>。<br>在企业微信里给「BrightStar 培训助手」发「<strong>登录码</strong>」即可获取。</p>
+    <input id="code" placeholder="例如 C5BE59A2" autocomplete="off" />
+    <button id="btn" onclick="login()">登录</button>
+    <div id="err" class="err"></div>
   </div>
-  <script>location.replace("lesson1.html");</script>
+  <script>
+    const API = "https://56fby26q7b.execute-api.ap-northeast-1.amazonaws.com/dev/web/login";
+    const KEY = "bs_session";
+    // 已登录直接进课程
+    if (sessionStorage.getItem(KEY)) location.replace("lesson1.html");
+
+    async function login(){
+      const code = document.getElementById("code").value.trim();
+      const err = document.getElementById("err"), btn = document.getElementById("btn");
+      err.textContent=""; if(!code){ err.textContent="请输入登录码"; return; }
+      btn.disabled=true; btn.textContent="登录中…";
+      try{
+        const r = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})});
+        const d = await r.json();
+        if(d.ok){ sessionStorage.setItem(KEY, JSON.stringify({code,name:d.name,role:d.role})); location.href="lesson1.html"; }
+        else { err.textContent = d.message || "登录码无效"; }
+      }catch(e){ err.textContent="网络错误，请重试"; }
+      finally{ btn.disabled=false; btn.textContent="登录"; }
+    }
+    document.getElementById("code").addEventListener("keydown",e=>{ if(e.key==="Enter") login(); });
+  </script>
 </body>
 </html>
