@@ -86,6 +86,7 @@ Globals:
         COURSES_TABLE: !Ref CoursesTable
         ENROLLMENTS_TABLE: !Ref EnrollmentsTable
         GROUPS_TABLE: !Ref GroupsTable
+        RESULTS_TABLE: !Ref ResultsTable
         ENROLLMENTS_GSI1: GSI1
         CANCEL_DEADLINE_HOURS: !Ref CancelDeadlineHours
         WECOM_CORP_ID: !Ref WeComCorpId
@@ -178,6 +179,29 @@ Resources:
         - { Key: ManagedBy, Value: sam }
         - { Key: Stage, Value: !Ref Stage }
 
+  ResultsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AppName}-${Stage}-results"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: { SSEEnabled: true }
+      AttributeDefinitions:
+        - { AttributeName: openid, AttributeType: S }
+        - { AttributeName: itemKey, AttributeType: S }   # 形如 quiz#lesson1 / survey#lesson1
+      KeySchema:
+        - { AttributeName: openid, KeyType: HASH }
+        - { AttributeName: itemKey, KeyType: RANGE }
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1                                  # 按 itemKey 查全部学员(老师导出)
+          KeySchema:
+            - { AttributeName: itemKey, KeyType: HASH }
+            - { AttributeName: openid, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+      Tags:
+        - { Key: Project, Value: !Ref AppName }
+        - { Key: ManagedBy, Value: sam }
+        - { Key: Stage, Value: !Ref Stage }
+
   # =========================================================================
   # HTTP API（微信 Webhook 入口；无 JWT，靠微信签名校验）
   # =========================================================================
@@ -239,6 +263,11 @@ Resources:
       Handler: handlers.web.handler
       Policies:
         - DynamoDBReadPolicy: { TableName: !Ref StudentsTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref ResultsTable }
+        - Statement:
+            Effect: Allow
+            Action: [dynamodb:Query]
+            Resource: !Sub "${ResultsTable.Arn}/index/GSI1"
       Events:
         Login:
           Type: HttpApi
@@ -246,6 +275,24 @@ Resources:
         LoginOptions:
           Type: HttpApi
           Properties: { ApiId: !Ref HttpApi, Method: OPTIONS, Path: "/web/login" }
+        Submit:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: POST, Path: "/web/submit" }
+        SubmitOptions:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: OPTIONS, Path: "/web/submit" }
+        Results:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: POST, Path: "/web/results" }
+        ResultsOptions:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: OPTIONS, Path: "/web/results" }
+        MyResults:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: POST, Path: "/web/my-results" }
+        MyResultsOptions:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: OPTIONS, Path: "/web/my-results" }
 
   # =========================================================================
   # Lambda —— 开课前 1 小时提醒（EventBridge 每 10 分钟触发）

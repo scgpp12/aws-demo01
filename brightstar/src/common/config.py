@@ -8,6 +8,7 @@ STUDENTS_TABLE = os.environ.get("STUDENTS_TABLE", "brightstar-dev-students")
 COURSES_TABLE = os.environ.get("COURSES_TABLE", "brightstar-dev-courses")
 ENROLLMENTS_TABLE = os.environ.get("ENROLLMENTS_TABLE", "brightstar-dev-enrollments")
 GROUPS_TABLE = os.environ.get("GROUPS_TABLE", "brightstar-dev-groups")
+RESULTS_TABLE = os.environ.get("RESULTS_TABLE", "brightstar-dev-results")
 ENROLLMENTS_GSI1 = os.environ.get("ENROLLMENTS_GSI1", "GSI1")
 
 # 退课截止：开课前 N 小时（可配置常量）

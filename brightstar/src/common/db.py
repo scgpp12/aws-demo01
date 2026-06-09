@@ -32,3 +32,7 @@ def enrollments():
 
 def groups():
     return _resource.Table(config.GROUPS_TABLE)
+
+
+def results():
+    return _resource.Table(config.RESULTS_TABLE)
