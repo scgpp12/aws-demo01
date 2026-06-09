@@ -3,7 +3,7 @@ from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
 from . import config, db
-from .timeutils import fmt_jst, iso_utc, now_utc, parse_iso
+from .timeutils import fmt_jst, fmt_jst_span, iso_utc, now_utc, parse_iso
 
 MENU = (
     "📚 BrightStar 培训助手\n"
@@ -106,7 +106,7 @@ def list_courses() -> str:
     for i, c in enumerate(courses, 1):
         left = int(c.get("capacity", 0)) - int(c.get("enrolledCount", 0))
         lines.append(
-            f"{i}. {c['title']}｜{fmt_jst(c.get('startTime',''))}｜余 {left} 位"
+            f"{i}. {c['title']}｜{fmt_jst_span(c.get('startTime',''), c.get('durationMin'))}｜余 {left} 位"
         )
     lines.append("\n报名请说：报名 课程名")
     return "\n".join(lines)
@@ -163,7 +163,7 @@ def enroll(openid: str, course_kw: str) -> str:
     join = course.get("zoomJoinUrl", "（待发布 Zoom 链接）")
     return (
         f"✅ 报名成功：{course['title']}\n"
-        f"🕒 时间：{fmt_jst(course.get('startTime',''))}\n"
+        f"🕒 时间：{fmt_jst_span(course.get('startTime',''), course.get('durationMin'))}\n"
         f"🔗 Zoom：{join}\n\n"
         "随时回复「下节课」可再次查看时间与链接。"
     )
@@ -234,7 +234,7 @@ def my_courses(openid: str) -> str:
     lines = ["🎒 我的课程："]
     for i, x in enumerate(mine, 1):
         c = x["course"]
-        lines.append(f"{i}. {c['title']}｜{fmt_jst(c.get('startTime',''))}")
+        lines.append(f"{i}. {c['title']}｜{fmt_jst_span(c.get('startTime',''), c.get('durationMin'))}")
     return "\n".join(lines)
 
 
@@ -247,6 +247,6 @@ def next_class(openid: str) -> str:
     join = c.get("zoomJoinUrl", "（待发布 Zoom 链接）")
     return (
         f"⏰ 你的下节课：{c['title']}\n"
-        f"🕒 时间：{fmt_jst(c.get('startTime',''))}\n"
+        f"🕒 时间：{fmt_jst_span(c.get('startTime',''), c.get('durationMin'))}\n"
         f"🔗 Zoom：{join}"
     )
