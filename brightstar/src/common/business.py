@@ -36,6 +36,39 @@ def start_registration(openid: str) -> str:
     return "👋 欢迎加入 BrightStar 培训助手！\n请回复你的【姓名】完成注册。"
 
 
+import uuid as _uuid
+
+_LOGINCODE_PK = "__logincode__"  # 反向索引：登录码 -> openid
+
+
+def get_or_create_login_code(openid: str):
+    """返回学员的网页登录码（没有则生成并建反向索引）。未注册返回 None。"""
+    s = get_student(openid)
+    if not s or s.get("status") != "active":
+        return None
+    code = s.get("loginCode")
+    if not code:
+        code = _uuid.uuid4().hex[:8].upper()
+        db.students().update_item(
+            Key={"openid": openid},
+            UpdateExpression="SET loginCode = :c",
+            ExpressionAttributeValues={":c": code},
+        )
+        db.students().put_item(Item={"openid": _LOGINCODE_PK + code, "ref": openid})
+    return code
+
+
+def find_by_login_code(code: str):
+    """登录码 → 学员记录；无效返回 None。"""
+    code = (code or "").strip().upper()
+    if not code:
+        return None
+    m = db.students().get_item(Key={"openid": _LOGINCODE_PK + code}).get("Item")
+    if not m or not m.get("ref"):
+        return None
+    return get_student(m["ref"])
+
+
 def promote_teacher(openid: str):
     """把已注册学员升级为老师（兼具学员身份）。"""
     db.students().update_item(

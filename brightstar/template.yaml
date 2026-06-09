@@ -185,6 +185,10 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       StageName: !Ref Stage
+      CorsConfiguration:                 # 供课程网站(Vercel/CF Pages)跨域调用 /web/*
+        AllowOrigins: ["*"]
+        AllowHeaders: [content-type]
+        AllowMethods: [GET, POST, OPTIONS]
       Tags:
         Project: !Ref AppName
         ManagedBy: sam
@@ -225,6 +229,25 @@ Resources:
           Properties: { ApiId: !Ref HttpApi, Method: POST, Path: "/wechat" }
 
   # =========================================================================
+  # Lambda —— 课程网站登录校验 API（/web/login）
+  # =========================================================================
+  WebFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AppName}-${Stage}-web"
+      CodeUri: src/
+      Handler: handlers.web.handler
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref StudentsTable }
+      Events:
+        Login:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: POST, Path: "/web/login" }
+        LoginOptions:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: OPTIONS, Path: "/web/login" }
+
+  # =========================================================================
   # Lambda —— 开课前 1 小时提醒（EventBridge 每 10 分钟触发）
   # =========================================================================
   ReminderFunction:
@@ -251,5 +274,8 @@ Outputs:
   WeChatWebhookUrl:
     Description: 填到微信公众平台「服务器配置」的 URL
     Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/wechat"
+  WebLoginApiUrl:
+    Description: 课程网站调用的登录校验接口
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/web/login"
   Region:
     Value: !Ref AWS::Region

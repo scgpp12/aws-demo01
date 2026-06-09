@@ -93,6 +93,12 @@ def _route(msg: dict) -> str:
     if student.get("status") == "awaiting_name":
         return business.complete_registration(openid, text)
 
+    # ---- 网页登录码：发「登录码 / 网页登录」获取 ----
+    if text in ("登录码", "网页登录", "网站登录", "登陆码"):
+        code = business.get_or_create_login_code(openid)
+        return f"🔑 你的网页登录码：{code}\n在课程网站登录页输入它即可（请勿外传）。" if code else \
+            "请先完成注册（回复姓名）后再获取登录码。"
+
     # ---- 改名：发「改名 张三」修正姓名 ----
     if text.startswith("改名"):
         return business.rename(openid, text[len("改名"):])

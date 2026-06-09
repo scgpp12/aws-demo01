@@ -280,6 +280,17 @@ def main():
     assert "已改名为：王大明" in r, r
     print("[11] 姓名校验 + 改名 OK")
 
+    # 12) 网页登录码：发码 + 校验
+    from common import business as biz
+    r = say(S, "登录码")
+    assert "登录码：" in r, r
+    code = r.split("登录码：", 1)[1].split(chr(10))[0].strip()
+    assert biz.find_by_login_code(code) is not None, "码应有效"
+    assert biz.find_by_login_code(code.lower()) is not None, "大小写不敏感"
+    assert biz.find_by_login_code("NOPECODE") is None, "无效码应拒"
+    assert say(S, "登录码").split("登录码：", 1)[1].split(chr(10))[0].strip() == code, "重复获取应同码"
+    print("[12] 网页登录码 OK ->", code)
+
     print("\n[OK] ALL FLOW TESTS PASSED")
 
 
