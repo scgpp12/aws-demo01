@@ -10,6 +10,7 @@
   const LS = {
     lang: "aws_course_lang",
     theme: "aws_course_theme",
+    palette: "aws_course_palette",
     font: "aws_course_font",
     progress: "aws_course_progress", // { l1:{done:true,score:3,total:4}, ... }
     lab: "aws_course_lab",           // { l1:{ "1":true, "6":true }, ... }
@@ -168,6 +169,24 @@
     document.documentElement.style.setProperty("--fs-scale", size === "large" ? "1.18" : "1");
     const btn = document.getElementById("fontToggle");
     if (btn) btn.setAttribute("aria-pressed", String(size === "large"));
+  }
+
+  /* ---------- 配色风格(可循环切换,默认 ocean) ---------- */
+  const PALETTES = [
+    { id: "ocean",    name: "海洋蓝", name_ja: "オーシャン" },
+    { id: "forest",   name: "森林绿", name_ja: "フォレスト" },
+    { id: "graphite", name: "石墨灰", name_ja: "グラファイト" },
+    { id: "aws",      name: "AWS橙",  name_ja: "AWSオレンジ" },
+  ];
+  function applyPalette(id) {
+    if (!PALETTES.some((p) => p.id === id)) id = "ocean";
+    document.documentElement.setAttribute("data-palette", id);
+    const btn = document.getElementById("paletteToggle");
+    if (btn) {
+      const p = PALETTES.find((x) => x.id === id);
+      const lbl = btn.querySelector(".label-text");
+      if (lbl) lbl.textContent = (lang === "ja" ? p.name_ja : p.name);
+    }
   }
 
   /* ============================================================
@@ -427,14 +446,71 @@
   }
 
   /* ============================================================
+     左侧大纲(TOC):从课头 + 各 section 自动生成,滚动高亮
+     ============================================================ */
+  let _tocObserver = null;
+  function headingText(el) {
+    const spans = el.querySelectorAll(":scope > span");
+    for (let i = spans.length - 1; i >= 0; i--) {
+      const t = (spans[i].textContent || "").trim();
+      if (t) return t;
+    }
+    return (el.textContent || "").trim();
+  }
+  function buildToc() {
+    const main = document.getElementById("main");
+    if (!main) return;
+    const items = [];
+    const head = main.querySelector(".lesson-head h1");
+    if (head) {
+      if (!head.id) head.closest(".lesson-head").id = "top";
+      items.push({ id: head.closest(".lesson-head").id, text: headingText(head) });
+    }
+    main.querySelectorAll("section[id]").forEach((sec) => {
+      const h = sec.querySelector("h2");
+      if (h) items.push({ id: sec.id, text: headingText(h) });
+    });
+    if (items.length < 2) return;
+
+    let nav = document.getElementById("tocNav");
+    if (!nav) {
+      nav = document.createElement("nav");
+      nav.id = "tocNav";
+      nav.className = "toc";
+      nav.setAttribute("aria-label", "本课大纲");
+      document.body.appendChild(nav);
+    }
+    const title = lang === "ja" ? "もくじ" : "本课大纲";
+    nav.innerHTML = '<div class="toc-title">' + escapeHtml(title) + "</div>" +
+      items.map((it) => '<a href="#' + it.id + '" data-toc="' + it.id + '">' + escapeHtml(it.text) + "</a>").join("");
+
+    // 滚动高亮(scroll-spy)
+    if (_tocObserver) _tocObserver.disconnect();
+    const links = {};
+    nav.querySelectorAll("a[data-toc]").forEach((a) => { links[a.getAttribute("data-toc")] = a; });
+    _tocObserver = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting) {
+          Object.values(links).forEach((a) => a.classList.remove("active"));
+          const a = links[en.target.id];
+          if (a) a.classList.add("active");
+        }
+      });
+    }, { rootMargin: "-30% 0px -65% 0px", threshold: 0 });
+    items.forEach((it) => { const el = document.getElementById(it.id); if (el) _tocObserver.observe(el); });
+  }
+
+  /* ============================================================
      初始化
      ============================================================ */
   function init() {
     // 主题/字号(尽早,避免闪烁——也在 <head> 内联了一段)
     applyTheme(localStorage.getItem(LS.theme) || "light");
     applyFont(localStorage.getItem(LS.font) || "normal");
+    applyPalette(localStorage.getItem(LS.palette) || "ocean");
 
     applyI18n();
+    buildToc();
     decorateTerms();
     updateLangButton();
     renderQuizzes();
@@ -457,6 +533,14 @@
       localStorage.setItem(LS.font, next); applyFont(next);
     });
 
+    const palBtn = document.getElementById("paletteToggle");
+    if (palBtn) palBtn.addEventListener("click", () => {
+      const cur = document.documentElement.getAttribute("data-palette") || "ocean";
+      const i = PALETTES.findIndex((p) => p.id === cur);
+      const next = PALETTES[(i + 1) % PALETTES.length].id;
+      localStorage.setItem(LS.palette, next); applyPalette(next);
+    });
+
     // 课程下拉菜单
     document.querySelectorAll(".navmenu .navmenu-btn").forEach((b) => {
       b.addEventListener("click", (e) => {
@@ -477,6 +561,12 @@
     if (gClose) gClose.addEventListener("click", closeGlossary);
     const gModal = document.getElementById("glossaryModal");
     if (gModal) gModal.addEventListener("click", (e) => { if (e.target === gModal) closeGlossary(); });
+
+    // 语言切换时:重建大纲文本 + 刷新配色按钮文字
+    document.addEventListener("langchange", () => {
+      buildToc();
+      applyPalette(document.documentElement.getAttribute("data-palette") || "ocean");
+    });
 
     // 问卷按钮
     document.querySelectorAll("[data-survey-url]").forEach((b) => {

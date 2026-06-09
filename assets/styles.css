@@ -93,6 +93,48 @@
 }
 
 /* ============================================================
+   配色风格预设(可在顶栏🎨切换;默认 ocean 海洋蓝)
+   仅覆盖主色/强调色相关 token,布局不变。
+   data-palette="aws" 即根部默认橙,无需覆盖。
+   ============================================================ */
+/* —— 海洋蓝(默认) —— */
+[data-palette="ocean"] {
+  --color-primary: #0b6bcb; --color-primary-ink: #084a8f; --color-primary-soft: #e7f1fc;
+  --color-accent: #008c8c; --color-accent-soft: #e2f5f5;
+  --color-info: #0b6bcb; --color-info-soft: #e7f1fc;
+  --color-term: #0b6bcb; --color-term-bg: #e7f1fc; --color-term-underline: #9ec6ee;
+}
+[data-palette="ocean"][data-theme="dark"] {
+  --color-primary-soft: #10283f; --color-primary-ink: #6fb4f0;
+  --color-accent-soft: #0f2f2f; --color-info-soft: #10283f;
+  --color-term: #6db4ec; --color-term-bg: #10283f; --color-term-underline: #2d5f8a;
+}
+/* —— 森林绿 —— */
+[data-palette="forest"] {
+  --color-primary: #2f8f4e; --color-primary-ink: #1f6e3a; --color-primary-soft: #e6f5ec;
+  --color-accent: #c77d11; --color-accent-soft: #fbf0dd;
+  --color-info: #2f8f4e; --color-info-soft: #e6f5ec;
+  --color-term: #2f8f4e; --color-term-bg: #e6f5ec; --color-term-underline: #a6d6b6;
+}
+[data-palette="forest"][data-theme="dark"] {
+  --color-primary-soft: #15301f; --color-primary-ink: #74d093;
+  --color-accent-soft: #33270f; --color-info-soft: #15301f;
+  --color-term: #74d093; --color-term-bg: #15301f; --color-term-underline: #2f6b45;
+}
+/* —— 石墨灰(极简) —— */
+[data-palette="graphite"] {
+  --color-primary: #3b4a5a; --color-primary-ink: #2a3744; --color-primary-soft: #eceff3;
+  --color-accent: #5b7a99; --color-accent-soft: #eaf0f6;
+  --color-info: #5b7a99; --color-info-soft: #eaf0f6;
+  --color-term: #5b7a99; --color-term-bg: #eaf0f6; --color-term-underline: #b3c4d6;
+}
+[data-palette="graphite"][data-theme="dark"] {
+  --color-primary-soft: #232b34; --color-primary-ink: #9fb2c6;
+  --color-accent-soft: #1c2733; --color-info-soft: #232b34;
+  --color-term: #9fb2c6; --color-term-bg: #232b34; --color-term-underline: #44566a;
+}
+
+/* ============================================================
    基础
    ============================================================ */
 * { box-sizing: border-box; }
@@ -185,6 +227,43 @@ h1, h2, h3 { line-height: 1.4; color: var(--color-text); }
   .toolbtn .label-text { display: none; }
   .toolbtn.keep-label .label-text { display: inline; }
 }
+
+/* ============================================================
+   左侧大纲 (TOC) —— 自动生成,滚动高亮,宽屏才显示
+   ============================================================ */
+.toc {
+  position: fixed; top: calc(var(--nav-h) + 22px); left: 20px;
+  width: 212px; max-height: calc(100vh - var(--nav-h) - 48px);
+  overflow-y: auto; overflow-x: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 12px 10px; z-index: 50;
+  font-size: var(--fs-sm);
+  display: none;          /* 默认隐藏,仅宽屏显示 */
+}
+.toc-title {
+  font-weight: 800; color: var(--color-text-soft);
+  font-size: var(--fs-xs); letter-spacing: .04em;
+  padding: 2px 8px 8px; text-transform: uppercase;
+}
+.toc a {
+  display: block; padding: 6px 8px; margin: 1px 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-soft); text-decoration: none;
+  border-left: 3px solid transparent;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: background .12s, color .12s, border-color .12s;
+}
+.toc a:hover { background: var(--color-surface-2); color: var(--color-text); }
+.toc a.active {
+  color: var(--color-primary-ink); background: var(--color-primary-soft);
+  border-left-color: var(--color-primary); font-weight: 700;
+}
+/* 宽屏才显示(留足空间不压正文);窄屏用顶栏☰导航 */
+@media (min-width: 1400px) { .toc { display: block; } }
+@media print { .toc { display: none !important; } }
 
 /* ============================================================
    页面容器

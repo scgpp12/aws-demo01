@@ -14,8 +14,10 @@
     (function () {
       var th = localStorage.getItem("aws_course_theme") || "light";
       var fs = localStorage.getItem("aws_course_font") || "normal";
+      var pal = localStorage.getItem("aws_course_palette") || "ocean";
       document.documentElement.setAttribute("data-theme", th);
       document.documentElement.setAttribute("data-fontsize", fs);
+      document.documentElement.setAttribute("data-palette", pal);
       document.documentElement.style.setProperty("--fs-scale", fs === "large" ? "1.18" : "1");
     })();
   </script>
@@ -42,6 +44,9 @@
       </button>
       <button id="fontToggle" class="toolbtn" aria-pressed="false">
         🔤 <span class="label-text" data-i18n="ui.font_toggle">大字号</span>
+      </button>
+      <button id="paletteToggle" class="toolbtn" aria-label="切换配色 / 配色切替" title="切换配色风格 / 配色切替">
+        🎨 <span class="label-text">海洋蓝</span>
       </button>
       <div class="navmenu">
         <button class="toolbtn navmenu-btn" aria-haspopup="true">
