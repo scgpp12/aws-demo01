@@ -13,11 +13,14 @@ ENROLLMENTS_GSI1 = os.environ.get("ENROLLMENTS_GSI1", "GSI1")
 # 退课截止：开课前 N 小时（可配置常量）
 CANCEL_DEADLINE_HOURS = int(os.environ.get("CANCEL_DEADLINE_HOURS", "2"))
 
-# 企业微信（自建应用 + 被动回复）
+# 企业微信
 WECOM_CORP_ID = os.environ.get("WECOM_CORP_ID", "")
 WECOM_TOKEN = os.environ.get("WECOM_TOKEN", "")
 WECOM_AES_KEY = os.environ.get("WECOM_AES_KEY", "")  # EncodingAESKey(43 位)
 WECOM_AGENT_ID = os.environ.get("WECOM_AGENT_ID", "")
+# 微信客服(kf)：通过中转服务器调企业微信 API（中转IP在可信IP白名单内）
+WECOM_SECRET = os.environ.get("WECOM_SECRET", "")
+WECOM_RELAY_URL = os.environ.get("WECOM_RELAY_URL", "")  # 形如 http://47.85.165.247:5005
 
 # 老师 userid 白名单（逗号分隔；企业微信成员 UserId）
 TEACHER_OPENIDS = [

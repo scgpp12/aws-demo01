@@ -207,6 +207,32 @@ def main():
     assert "仅老师可用" in r, r
     print("[7] 老师命令鉴权 OK")
 
+    # 8) 微信客服(kf) 拉取→处理→回复 闭环（mock 中转）
+    from common import kf as kfmod
+    captured = []
+    kfmod.send_text = lambda okf, uid, text: captured.append((uid, text)) or {"errcode": 0}
+    pages = iter([
+        {"errcode": 0, "has_more": 0, "next_cursor": "c1", "msg_list": [
+            {"external_userid": "wmKF1", "msgtype": "event", "origin": 4,
+             "event": {"event_type": "enter_session"}}]},
+        {"errcode": 0, "has_more": 0, "next_cursor": "c2", "msg_list": [
+            {"external_userid": "wmKF1", "msgtype": "text", "origin": 3,
+             "text": {"content": "客服李四"}}]},
+        {"errcode": 0, "has_more": 0, "next_cursor": "c3", "msg_list": [
+            {"external_userid": "wmKF1", "msgtype": "text", "origin": 3,
+             "text": {"content": "有哪些课"}}]},
+    ])
+    kfmod.sync_msg = lambda token, cursor, okf, limit=100: next(pages)
+    OKF = "wkJRdemo"
+    webhook.handle_kf(OKF, "TK")   # enter_session → 注册提示
+    webhook.handle_kf(OKF, "TK")   # "客服李四" → 注册成功
+    webhook.handle_kf(OKF, "TK")   # "有哪些课" → 列课
+    assert any("请回复你的【姓名】" in t for _, t in captured), captured
+    assert any("注册成功，客服李四" in t for _, t in captured), captured
+    assert any("Python入门" in t for _, t in captured), captured
+    assert kfmod.get_cursor(OKF) == "c3"
+    print("[8] 微信客服(kf) 拉取→处理→回复 OK")
+
     print("\n[OK] ALL FLOW TESTS PASSED")
 
 

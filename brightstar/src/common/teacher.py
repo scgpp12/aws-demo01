@@ -195,7 +195,10 @@ def update_course(arg: str) -> str:
 # ------------------------------- 学员 / 名单 / 分组 -------------------------------
 def list_students() -> str:
     items = db.students().scan().get("Items", [])
-    active = [s for s in items if s.get("status") != "awaiting_name"]
+    active = [
+        s for s in items
+        if s.get("status") != "awaiting_name" and not str(s.get("openid", "")).startswith("__")
+    ]
     if not active:
         return "暂无学员。"
     lines = [f"👥 学员（{len(active)}）："]

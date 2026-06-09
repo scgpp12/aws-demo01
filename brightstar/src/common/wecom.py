@@ -25,13 +25,15 @@ def parse_message(plain_xml: str) -> dict:
         return el.text if el is not None and el.text is not None else ""
 
     return {
-        "fromUser": g("FromUserName"),   # 企业成员 UserId
+        "fromUser": g("FromUserName"),   # 企业成员 UserId（自建应用消息时）
         "toUser": g("ToUserName"),       # CorpID
         "msgType": g("MsgType"),
         "content": (g("Content") or "").strip(),
         "event": g("Event"),
         "eventKey": g("EventKey"),
         "agentId": g("AgentID"),
+        "kfToken": g("Token"),           # 微信客服事件：拉取消息用的 token
+        "openKfId": g("OpenKfId"),       # 微信客服账号 id
     }
 
 

@@ -8,7 +8,7 @@
 import base64
 import logging
 
-from common import bedrock, business, config, teacher, wecom, wecom_crypto
+from common import bedrock, business, config, kf, teacher, wecom, wecom_crypto
 from common.auth import is_teacher
 
 log = logging.getLogger()
@@ -94,6 +94,40 @@ def _route(msg: dict) -> str:
     return _dispatch_student(openid, parsed["intent"], parsed["params"])
 
 
+# ------------------------- 微信客服(kf) 消息处理 -------------------------
+def _kf_reply_for(openid: str, text: str) -> str:
+    return _route({"fromUser": openid, "msgType": "text", "content": text,
+                   "event": "", "eventKey": ""})
+
+
+def handle_kf(open_kfid: str, token: str):
+    """收到 kf 事件 → 拉取消息 → 逐条处理 → 经中转回复。"""
+    cursor = kf.get_cursor(open_kfid)
+    for _ in range(10):  # 最多翻 10 页，防御性上限
+        resp = kf.sync_msg(token, cursor, open_kfid)
+        if resp.get("errcode", 0) != 0:
+            log.error("kf sync_msg failed: %s", resp)
+            return
+        for m in resp.get("msg_list", []):
+            uid = m.get("external_userid", "")
+            if not uid:
+                continue
+            mtype = m.get("msgtype", "")
+            if mtype == "text" and m.get("origin") == 3:
+                reply = _kf_reply_for(uid, (m.get("text", {}) or {}).get("content", "").strip())
+                kf.send_text(open_kfid, uid, reply)
+            elif mtype == "event":
+                etype = (m.get("event", {}) or {}).get("event_type", "")
+                if etype == "enter_session":
+                    student = business.get_student(uid)
+                    reply = business.start_registration(uid) if not student else business.MENU
+                    kf.send_text(open_kfid, uid, reply)
+        cursor = resp.get("next_cursor", cursor)
+        kf.set_cursor(open_kfid, cursor)
+        if not resp.get("has_more"):
+            break
+
+
 # ------------------------------- 入口 -------------------------------
 def handler(event, context):
     method = event["requestContext"]["http"]["method"]
@@ -121,6 +155,13 @@ def handler(event, context):
             return wecom.http(403, "invalid signature")
         plain_xml, _ = wecom_crypto.decrypt(encrypt)
         msg = wecom.parse_message(plain_xml)
+
+        # 微信客服事件：拉消息→处理→主动回复（回调本身回空 200）
+        if msg["msgType"] == "event" and msg.get("event") == "kf_msg_or_event":
+            handle_kf(msg.get("openKfId", ""), msg.get("kfToken", ""))
+            return wecom.http(200, "")
+
+        # 自建应用消息：被动加密回复
         reply = _route(msg)
         envelope = wecom.build_encrypted_reply(msg["fromUser"], config.WECOM_CORP_ID, reply)
         return wecom.xml_resp(envelope)

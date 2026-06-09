@@ -35,6 +35,15 @@ Parameters:
     Type: String
     Default: ""
     Description: 企业微信自建应用 AgentId。
+  WeComSecret:
+    Type: String
+    Default: ""
+    Description: 企业微信应用 Secret（微信客服调 API 用）。
+    NoEcho: true
+  WeComRelayUrl:
+    Type: String
+    Default: ""
+    Description: 中转服务器地址（其 IP 在企业可信IP内），如 http://47.85.165.247:5005
   TeacherOpenids:
     Type: String
     Default: ""
@@ -74,6 +83,8 @@ Globals:
         WECOM_TOKEN: !Ref WeComToken
         WECOM_AES_KEY: !Ref WeComAesKey
         WECOM_AGENT_ID: !Ref WeComAgentId
+        WECOM_SECRET: !Ref WeComSecret
+        WECOM_RELAY_URL: !Ref WeComRelayUrl
         TEACHER_OPENIDS: !Ref TeacherOpenids
         BEDROCK_ENABLED: !Ref BedrockEnabled
         BEDROCK_MODEL_ID: !Ref BedrockModelId

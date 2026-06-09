@@ -1,0 +1,69 @@
+"""微信客服(kf) 接入：经中转服务器调企业微信 kf API。
+
+Lambda → relay(POST /kf/xxx, 带 _corp_id/_secret/_method) → 企业微信 /cgi-bin/kf/xxx
+中转服务器 IP 在企业可信IP白名单内，故 Lambda 自身 IP 不受限。
+
+回调只收到「有新消息」事件(含 token+open_kfid)，需主动 sync_msg 拉取，再 send_msg 回复。
+游标 next_cursor 持久化在 Students 表的保留键里，避免重复处理。
+"""
+import json
+import logging
+import urllib.request
+
+from . import config, db
+
+log = logging.getLogger()
+
+_CURSOR_PK = "__kfcursor__"  # Students 表保留键前缀
+
+
+def _relay(api_path: str, payload: dict = None, method: str = "POST") -> dict:
+    body = dict(payload or {})
+    body["_corp_id"] = config.WECOM_CORP_ID
+    body["_secret"] = config.WECOM_SECRET
+    body["_method"] = method
+    data = json.dumps(body).encode("utf-8")
+    req = urllib.request.Request(
+        config.WECOM_RELAY_URL.rstrip("/") + api_path,
+        data=data,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:  # noqa: S310
+            return json.loads(r.read().decode("utf-8"))
+    except Exception as e:  # noqa: BLE001
+        log.error("kf relay %s error: %s", api_path, e)
+        return {"errcode": -1, "errmsg": str(e)}
+
+
+# ------------------------------- 游标 -------------------------------
+def _cursor_key(open_kfid: str) -> str:
+    return _CURSOR_PK + open_kfid
+
+
+def get_cursor(open_kfid: str) -> str:
+    item = db.students().get_item(Key={"openid": _cursor_key(open_kfid)}).get("Item")
+    return (item or {}).get("cursor", "")
+
+
+def set_cursor(open_kfid: str, cursor: str):
+    db.students().put_item(Item={"openid": _cursor_key(open_kfid), "cursor": cursor})
+
+
+# ------------------------------- API -------------------------------
+def sync_msg(token: str, cursor: str, open_kfid: str, limit: int = 100) -> dict:
+    payload = {"token": token, "limit": limit, "open_kfid": open_kfid}
+    if cursor:
+        payload["cursor"] = cursor
+    return _relay("/kf/sync_msg", payload)
+
+
+def send_text(open_kfid: str, external_userid: str, text: str) -> dict:
+    payload = {
+        "touser": external_userid,
+        "open_kfid": open_kfid,
+        "msgtype": "text",
+        "text": {"content": text},
+    }
+    return _relay("/kf/send_msg", payload)
