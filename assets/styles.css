@@ -266,6 +266,21 @@ h1, h2, h3 { line-height: 1.4; color: var(--color-text); }
 @media print { .toc { display: none !important; } }
 
 /* ============================================================
+   官方图文教程入口卡
+   ============================================================ */
+.guide-box { border-left-color: var(--color-accent) !important; }
+.guide-box .guide-head { font-size: var(--fs-base); margin-bottom: 6px; }
+.guide-box .guide-note { color: var(--color-text-soft); font-size: var(--fs-sm); margin: 4px 0 10px; }
+.guide-box .guide-links { margin: 0; padding-left: 0; list-style: none; }
+.guide-box .guide-links li { margin: 8px 0; }
+.guide-box .guide-links a {
+  display: inline-block; font-weight: 600; line-height: 1.5;
+  color: var(--color-accent); text-decoration: none;
+  border-bottom: 1px dashed var(--color-accent);
+}
+.guide-box .guide-links a:hover { color: var(--color-primary-ink); border-bottom-style: solid; }
+
+/* ============================================================
    页面容器
    ============================================================ */
 main { max-width: var(--maxw); margin: 0 auto; padding: var(--sp-6) var(--sp-4) var(--sp-8); }
