@@ -268,6 +268,18 @@ def main():
     assert r.startswith("@张三"), r
     print("[10] 回名字 + 老师认证 + 双重身份 OK")
 
+    # 11) 姓名校验（拒绝问候语）+ 改名
+    say("oBad", "x")                       # 触发注册
+    r = say("oBad", "你好")                # "你好"不能当姓名
+    assert "真实姓名" in r, r
+    r = say("oBad", "王小明")              # 合法
+    assert "注册成功，王小明" in r, r
+    r = say("oBad", "改名 注册")           # 非法改名
+    assert "格式" in r, r
+    r = say("oBad", "改名 王大明")         # 合法改名
+    assert "已改名为：王大明" in r, r
+    print("[11] 姓名校验 + 改名 OK")
+
     print("\n[OK] ALL FLOW TESTS PASSED")
 
 

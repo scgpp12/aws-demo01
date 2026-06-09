@@ -46,10 +46,29 @@ def promote_teacher(openid: str):
     )
 
 
+# 不能当姓名的问候语/指令词
+_NAME_BLOCKLIST = {
+    "你好", "您好", "hi", "hello", "在吗", "注册", "重新注册", "报名", "取消",
+    "课程", "课程列表", "有哪些课", "下节课", "我的课", "我的课程", "菜单",
+    "帮助", "help", "老师", "老师认证", "老师帮助", "改名",
+}
+
+
+def valid_name(name: str) -> bool:
+    name = (name or "").strip()
+    if not (2 <= len(name) <= 20):
+        return False
+    if name.lower() in _NAME_BLOCKLIST or name in _NAME_BLOCKLIST:
+        return False
+    if name.isdigit():
+        return False
+    return True
+
+
 def complete_registration(openid: str, name: str) -> str:
     name = (name or "").strip()
-    if not name:
-        return "姓名不能为空，请回复你的姓名。"
+    if not valid_name(name):
+        return "请回复你的【真实姓名】（2-20 个字，不要发问候语或指令）完成注册。"
     db.students().update_item(
         Key={"openid": openid},
         UpdateExpression="SET #n = :n, #s = :a",
@@ -57,6 +76,19 @@ def complete_registration(openid: str, name: str) -> str:
         ExpressionAttributeValues={":n": name, ":a": "active"},
     )
     return f"✅ 注册成功，{name}！\n\n" + MENU
+
+
+def rename(openid: str, new_name: str) -> str:
+    new_name = (new_name or "").strip()
+    if not valid_name(new_name):
+        return "格式：改名 你的真实姓名（2-20 个字）"
+    db.students().update_item(
+        Key={"openid": openid},
+        UpdateExpression="SET #n = :n",
+        ExpressionAttributeNames={"#n": "name"},
+        ExpressionAttributeValues={":n": new_name},
+    )
+    return f"✅ 已改名为：{new_name}"
 
 
 # ------------------------------- 课程 -------------------------------

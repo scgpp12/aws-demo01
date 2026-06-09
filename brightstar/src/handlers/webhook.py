@@ -93,6 +93,10 @@ def _route(msg: dict) -> str:
     if student.get("status") == "awaiting_name":
         return business.complete_registration(openid, text)
 
+    # ---- 改名：发「改名 张三」修正姓名 ----
+    if text.startswith("改名"):
+        return business.rename(openid, text[len("改名"):])
+
     # ---- 老师自助认证：发「老师认证 <口令>」升级为老师（兼具学员身份）----
     if text.startswith("老师认证"):
         code = text[len("老师认证"):].strip()
