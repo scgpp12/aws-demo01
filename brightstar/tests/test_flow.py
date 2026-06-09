@@ -36,7 +36,14 @@ class FakeTable:
         it = self.items.get(self._key(Key))
         return {"Item": dict(it)} if it else {}
 
-    def put_item(self, Item):
+    def put_item(self, Item, ConditionExpression=None, **kw):
+        if ConditionExpression and "attribute_not_exists" in ConditionExpression:
+            if self._key(Item) in self.items:
+                from botocore.exceptions import ClientError
+                raise ClientError(
+                    {"Error": {"Code": "ConditionalCheckFailedException", "Message": "exists"}},
+                    "PutItem",
+                )
         self.items[self._key(Item)] = dict(Item)
 
     def delete_item(self, Key):
@@ -207,31 +214,40 @@ def main():
     assert "仅老师可用" in r, r
     print("[7] 老师命令鉴权 OK")
 
-    # 8) 微信客服(kf) 拉取→处理→回复 闭环（mock 中转）
+    # 8) 微信客服(kf) 拉取→处理→回复 闭环 + 去重（mock 中转）
+    import time as _t
     from common import kf as kfmod
+    NOW = int(_t.time())
     captured = []
     kfmod.send_text = lambda okf, uid, text: captured.append((uid, text)) or {"errcode": 0}
+
+    def page(cur, msgs):
+        return {"errcode": 0, "has_more": 0, "next_cursor": cur, "msg_list": msgs}
+
     pages = iter([
-        {"errcode": 0, "has_more": 0, "next_cursor": "c1", "msg_list": [
-            {"external_userid": "wmKF1", "msgtype": "event", "origin": 4,
-             "event": {"event_type": "enter_session"}}]},
-        {"errcode": 0, "has_more": 0, "next_cursor": "c2", "msg_list": [
-            {"external_userid": "wmKF1", "msgtype": "text", "origin": 3,
-             "text": {"content": "客服李四"}}]},
-        {"errcode": 0, "has_more": 0, "next_cursor": "c3", "msg_list": [
-            {"external_userid": "wmKF1", "msgtype": "text", "origin": 3,
-             "text": {"content": "有哪些课"}}]},
+        page("c1", [{"msgid": "m1", "send_time": NOW, "external_userid": "wmKF1",
+                     "msgtype": "event", "origin": 4, "event": {"event_type": "enter_session"}}]),
+        page("c2", [{"msgid": "m2", "send_time": NOW, "external_userid": "wmKF1",
+                     "msgtype": "text", "origin": 3, "text": {"content": "客服李四"}}]),
+        page("c3", [{"msgid": "m3", "send_time": NOW, "external_userid": "wmKF1",
+                     "msgtype": "text", "origin": 3, "text": {"content": "有哪些课"}}]),
+        # 重试：重复返回 m3（旧 cursor）→ 应被 msgid 去重，不再回复
+        page("c3", [{"msgid": "m3", "send_time": NOW, "external_userid": "wmKF1",
+                     "msgtype": "text", "origin": 3, "text": {"content": "有哪些课"}}]),
+        # 历史积压：send_time 很旧 → 应跳过
+        page("c4", [{"msgid": "m9", "send_time": NOW - 9999, "external_userid": "wmKF1",
+                     "msgtype": "text", "origin": 3, "text": {"content": "报名 Python入门"}}]),
     ])
     kfmod.sync_msg = lambda token, cursor, okf, limit=100: next(pages)
     OKF = "wkJRdemo"
-    webhook.handle_kf(OKF, "TK")   # enter_session → 注册提示
-    webhook.handle_kf(OKF, "TK")   # "客服李四" → 注册成功
-    webhook.handle_kf(OKF, "TK")   # "有哪些课" → 列课
-    assert any("请回复你的【姓名】" in t for _, t in captured), captured
-    assert any("注册成功，客服李四" in t for _, t in captured), captured
-    assert any("Python入门" in t for _, t in captured), captured
-    assert kfmod.get_cursor(OKF) == "c3"
-    print("[8] 微信客服(kf) 拉取→处理→回复 OK")
+    for _ in range(5):
+        webhook.handle_kf(OKF, "TK")
+    assert sum("请回复你的【姓名】" in t for _, t in captured) == 1, captured
+    assert sum("注册成功，客服李四" in t for _, t in captured) == 1, captured
+    assert sum("Python入门" in t and "可报名" in t for _, t in captured) == 1, captured  # 列课只1次(去重)
+    assert not any("报名成功" in t for _, t in captured), "历史积压不应被处理"
+    assert kfmod.get_cursor(OKF) == "c4"
+    print(f"[8] 微信客服(kf) 拉取→处理→回复 + 去重/时效 OK (共回 {len(captured)} 条)")
 
     print("\n[OK] ALL FLOW TESTS PASSED")
 

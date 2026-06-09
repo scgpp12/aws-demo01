@@ -8,13 +8,33 @@ Lambda → relay(POST /kf/xxx, 带 _corp_id/_secret/_method) → 企业微信 /c
 """
 import json
 import logging
+import time
 import urllib.request
+
+from botocore.exceptions import ClientError
 
 from . import config, db
 
 log = logging.getLogger()
 
 _CURSOR_PK = "__kfcursor__"  # Students 表保留键前缀
+_MSG_PK = "__kfmsg__"        # 已处理 msgid 去重键前缀
+
+
+def claim_msgid(msgid: str) -> bool:
+    """首次见到该 msgid 返回 True；重复(并发或重试)返回 False。条件写入保证幂等。"""
+    if not msgid:
+        return True
+    try:
+        db.students().put_item(
+            Item={"openid": _MSG_PK + msgid, "ts": int(time.time())},
+            ConditionExpression="attribute_not_exists(openid)",
+        )
+        return True
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            return False
+        raise
 
 
 def _relay(api_path: str, payload: dict = None, method: str = "POST") -> dict:

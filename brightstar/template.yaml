@@ -197,6 +197,10 @@ Resources:
             Effect: Allow
             Action: [dynamodb:Query]
             Resource: !Sub "${EnrollmentsTable.Arn}/index/GSI1"
+        - Statement:                      # 自调用（kf 异步处理）
+            Effect: Allow
+            Action: [lambda:InvokeFunction]
+            Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AppName}-${Stage}-webhook"
         - Statement:                      # Bedrock 意图解析（东京区）
             Effect: Allow
             Action: [bedrock:InvokeModel]
