@@ -9,7 +9,7 @@ import base64
 import logging
 import time
 
-from common import bedrock, business, config, i18n, kf, teacher, wecom, wecom_crypto
+from common import bedrock, business, config, i18n, kf, rag, teacher, wecom, wecom_crypto
 from common.auth import is_teacher
 
 log = logging.getLogger()
@@ -23,6 +23,12 @@ MENU_KEY_TO_INTENT = {
 }
 
 TEACHER_CMDS = ("建课", "发布", "删课", "改课", "学员列表", "名单", "分组", "老师帮助")
+
+# 人工智能问答开关（前台可选；开启后自由提问才走 Bedrock RAG）
+AI_ON_CMDS = {"AI", "ai", "Ai", "人工智能", "AI回复", "AI問答", "AI问答", "智能问答",
+              "AIモード", "AI開始", "AIに質問"}
+AI_OFF_CMDS = {"退出AI", "退出ai", "关闭AI", "关闭ai", "普通模式", "AI关闭",
+               "AI終了", "AI終わり", "通常モード"}
 
 
 def _body(event) -> str:
@@ -132,12 +138,25 @@ def _route(msg: dict) -> str:
     if is_tcmd:
         return "该指令仅老师可用。"
 
+    # ---- 人工智能问答开关（前台可选；开了才会调用 Bedrock）----
+    if text in AI_ON_CMDS:
+        business.set_ai_mode(openid, True)
+        return i18n.T(lang, "ai_on")
+    if text in AI_OFF_CMDS:
+        business.set_ai_mode(openid, False)
+        return i18n.T(lang, "ai_off")
+
     # ---- 数字快捷 ----
     if text in business.NUM_TO_INTENT:
         return _dispatch_student(openid, business.NUM_TO_INTENT[text], {})
 
-    # ---- AI 意图解析（自由打字，中日关键词兜底）----
+    # ---- 意图解析（中日关键词兜底）----
     parsed = bedrock.parse_intent(text)
+    # AI 模式下：识别到的具体操作照常执行；纯自由提问(intent=help)走 RAG 答疑
+    if parsed["intent"] == "help" and business.get_ai_mode(student):
+        name = student.get("name") or ""
+        ans = rag.answer(text, lang)
+        return f"@{name}\n{ans}" if name else ans
     return _dispatch_student(openid, parsed["intent"], parsed["params"])
 
 

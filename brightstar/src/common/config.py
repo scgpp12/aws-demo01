@@ -9,6 +9,7 @@ COURSES_TABLE = os.environ.get("COURSES_TABLE", "brightstar-dev-courses")
 ENROLLMENTS_TABLE = os.environ.get("ENROLLMENTS_TABLE", "brightstar-dev-enrollments")
 GROUPS_TABLE = os.environ.get("GROUPS_TABLE", "brightstar-dev-groups")
 RESULTS_TABLE = os.environ.get("RESULTS_TABLE", "brightstar-dev-results")
+KNOWLEDGE_TABLE = os.environ.get("KNOWLEDGE_TABLE", "brightstar-dev-knowledge")
 ENROLLMENTS_GSI1 = os.environ.get("ENROLLMENTS_GSI1", "GSI1")
 
 # 退课截止：开课前 N 小时（可配置常量）
@@ -41,6 +42,16 @@ BEDROCK_ENABLED = os.environ.get("BEDROCK_ENABLED", "true").lower() == "true"
 BEDROCK_MODEL_ID = os.environ.get(
     "BEDROCK_MODEL_ID", "anthropic.claude-3-haiku-20240307-v1:0"
 )
+
+# 自建 RAG（人工智能问答；仅学员开启 AI 模式后调用）
+# 生成默认用日本境内 inference profile（数据不出日本），向量用 Titan v2
+BEDROCK_CHAT_MODEL_ID = os.environ.get(
+    "BEDROCK_CHAT_MODEL_ID", "jp.anthropic.claude-sonnet-4-5-20250929-v1:0"
+)
+BEDROCK_EMBED_MODEL_ID = os.environ.get(
+    "BEDROCK_EMBED_MODEL_ID", "amazon.titan-embed-text-v2:0"
+)
+BEDROCK_EMBED_DIM = int(os.environ.get("BEDROCK_EMBED_DIM", "256"))
 
 # Zoom
 ZOOM_ENABLED = os.environ.get("ZOOM_ENABLED", "false").lower() == "true"

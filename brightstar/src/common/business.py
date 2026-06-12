@@ -94,6 +94,20 @@ def switch_language(openid: str, lang: str) -> str:
     return T(lang, "lang_switched") + menu(lang)
 
 
+# ------------------------------- AI 问答开关 -------------------------------
+def get_ai_mode(student) -> bool:
+    """学员是否开启了「人工智能回复」。"""
+    return bool(student.get("aiMode")) if isinstance(student, dict) else False
+
+
+def set_ai_mode(openid: str, on: bool):
+    db.students().update_item(
+        Key={"openid": openid},
+        UpdateExpression="SET aiMode = :v",
+        ExpressionAttributeValues={":v": bool(on)},
+    )
+
+
 _LOGINCODE_PK = "__logincode__"  # 反向索引：登录码 -> openid
 
 

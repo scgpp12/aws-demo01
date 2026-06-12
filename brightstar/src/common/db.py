@@ -36,3 +36,7 @@ def groups():
 
 def results():
     return _resource.Table(config.RESULTS_TABLE)
+
+
+def knowledge():
+    return _resource.Table(config.KNOWLEDGE_TABLE)

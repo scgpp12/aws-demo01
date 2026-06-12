@@ -326,6 +326,21 @@ def main():
     assert biz.find_by_login_code(newcode) is not None, "新码应有效"
     assert biz.find_by_login_code(code) is None, "旧码反向索引应已删除"
     print("[12b] 登录码 7 天有效期 + 过期换发 OK ->", newcode)
+
+    # 13) 人工智能问答开关：开了才走 RAG；动作仍正常；可关闭
+    import common.rag as ragmod
+    ragmod.answer = lambda q, lang="ja": f"[AI:{q}]"   # 桩掉 Bedrock
+    r = say(S, "AI")
+    assert "AI 问答" in r, r                              # 开启提示(中文)
+    r = say(S, "S3 是什么东西")                           # 自由提问 → RAG
+    assert r.startswith("@张三") and "[AI:" in r, r
+    r = say(S, "有哪些课")                                # 具体操作仍走结构化,不进 RAG
+    assert "可报名" in r and "[AI:" not in r, r
+    r = say(S, "退出AI")
+    assert "普通模式" in r, r
+    r = say(S, "S3 是什么东西")                           # 关了之后不再走 RAG
+    assert "[AI:" not in r, r
+    print("[13] AI 问答开关 + RAG 兜底 OK")
     print("[12] 网页登录码 OK ->", code)
 
     print("\n[OK] ALL FLOW TESTS PASSED")
