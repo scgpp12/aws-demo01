@@ -73,8 +73,8 @@ Parameters:
     Description: 东京区可用的 Bedrock 意图解析模型 ID。
   BedrockChatModelId:
     Type: String
-    Default: "jp.anthropic.claude-sonnet-4-5-20250929-v1:0"
-    Description: RAG 答疑生成模型（日本境内 inference profile，数据不出日本）。便宜可换 haiku-4-5。
+    Default: "jp.anthropic.claude-haiku-4-5-20251001-v1:0"
+    Description: RAG 答疑生成模型（日本境内 inference profile，数据不出日本）。质量更高可换 sonnet-4-5。
   BedrockEmbedModelId:
     Type: String
     Default: "amazon.titan-embed-text-v2:0"

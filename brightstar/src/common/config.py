@@ -46,7 +46,7 @@ BEDROCK_MODEL_ID = os.environ.get(
 # 自建 RAG（人工智能问答；仅学员开启 AI 模式后调用）
 # 生成默认用日本境内 inference profile（数据不出日本），向量用 Titan v2
 BEDROCK_CHAT_MODEL_ID = os.environ.get(
-    "BEDROCK_CHAT_MODEL_ID", "jp.anthropic.claude-sonnet-4-5-20250929-v1:0"
+    "BEDROCK_CHAT_MODEL_ID", "jp.anthropic.claude-haiku-4-5-20251001-v1:0"
 )
 BEDROCK_EMBED_MODEL_ID = os.environ.get(
     "BEDROCK_EMBED_MODEL_ID", "amazon.titan-embed-text-v2:0"
