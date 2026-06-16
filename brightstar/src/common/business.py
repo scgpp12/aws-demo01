@@ -33,7 +33,7 @@ def get_student(openid: str):
 
 
 def start_registration(openid: str) -> str:
-    """新用户：建占位档案，先让其选择语言（默认日语）。"""
+    """新用户：建占位档案，先让其选择语言（默认日语）。附跨平台关联提示。"""
     db.students().put_item(
         Item={
             "openid": openid,
@@ -43,7 +43,7 @@ def start_registration(openid: str) -> str:
             "createdAt": iso_utc(),
         }
     )
-    return T(DEFAULT_LANG, "lang_choose")
+    return T(DEFAULT_LANG, "lang_choose") + "\n\n" + T(DEFAULT_LANG, "link_hint")
 
 
 def _set_lang_field(openid: str, lang: str):
@@ -160,6 +160,65 @@ def find_by_login_code(code: str):
     if _expired(m.get("exp")):
         return None
     return get_student(m["ref"])
+
+
+# ------------------------------- 跨平台账号关联 -------------------------------
+def resolve_openid(openid: str) -> str:
+    """身份解析：若该 openid 是已关联的「次账号」，返回其指向的主账号 openid；否则原样返回。
+
+    LINE / 微信等不同平台的同一个人，可用「绑定 登录码」把次账号并到主账号；
+    之后该次账号的所有消息都按主账号处理（注册/课程/老师权限/登录码全部共用）。
+    """
+    s = db.students().get_item(Key={"openid": openid}).get("Item")
+    if s and s.get("linkedTo"):
+        return s["linkedTo"]
+    return openid
+
+
+def get_channels(openid: str) -> list:
+    """返回主账号的全部推送通道 openid（自身 + 已关联的各平台次账号），去重。
+
+    供开课提醒「多平台同时触达」：一个人若微信+LINE都绑了，两边都收到提醒。
+    """
+    s = get_student(openid) or {}
+    chans = [openid] + [c for c in (s.get("channels") or []) if c != openid]
+    seen, out = set(), []
+    for c in chans:
+        if c not in seen:
+            seen.add(c)
+            out.append(c)
+    return out
+
+
+def link_by_login_code(openid: str, code: str) -> str:
+    """把当前(次)账号 openid 关联到「登录码」对应的主账号。返回回复文案。"""
+    cur = get_student(openid)
+    lang = get_lang(cur)
+    code = (code or "").strip()
+    if not code:
+        return T(lang, "link_need_code")
+    canonical = find_by_login_code(code)
+    if not canonical:
+        return T(lang, "link_bad_code")
+    canonical_openid = canonical["openid"]
+    if canonical_openid == openid:
+        return T(lang, "link_self")
+    # 次账号 → 别名记录，指向主账号
+    db.students().put_item(Item={
+        "openid": openid,
+        "linkedTo": canonical_openid,
+        "status": "linked",
+        "createdAt": (cur or {}).get("createdAt") or iso_utc(),
+    })
+    # 主账号登记该通道（供提醒多平台触达），去重写回
+    chans = [c for c in (canonical.get("channels") or []) if c != openid]
+    chans.append(openid)
+    db.students().update_item(
+        Key={"openid": canonical_openid},
+        UpdateExpression="SET channels = :c",
+        ExpressionAttributeValues={":c": chans},
+    )
+    return T(lang, "link_ok", name=canonical.get("name") or "") + menu(get_lang(canonical))
 
 
 def promote_teacher(openid: str):

@@ -57,12 +57,14 @@ def handler(event, context):
                 continue
             lang = business.get_lang(business.get_student(e["openid"]))
             msg = i18n.T(lang, "reminder", title=c["title"], when=when, join=join)
-            r = messaging.send(e["openid"], msg)
-            if r.get("errcode") == 0:
-                sent += 1
-            else:
-                failed += 1
-                log.warning("reminder send failed uid=%s: %s", e["openid"], r)
+            # 多平台扇出：主账号 + 已关联的各平台通道都推送
+            for ch in business.get_channels(e["openid"]):
+                r = messaging.send(ch, msg)
+                if r.get("errcode") == 0:
+                    sent += 1
+                else:
+                    failed += 1
+                    log.warning("reminder send failed uid=%s: %s", ch, r)
 
     log.info("reminder tick: sent=%s failed=%s", sent, failed)
     return {"sent": sent, "failed": failed}

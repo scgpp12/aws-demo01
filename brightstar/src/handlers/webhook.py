@@ -68,8 +68,21 @@ def _dispatch_student(openid: str, intent: str, params: dict) -> str:
     return f"@{name}\n{body}" if name else body
 
 
+BIND_CMDS = ("绑定", "綁定", "連携", "连携")
+
+
 def _route(msg: dict) -> str:
-    openid = msg["fromUser"]
+    raw = msg["fromUser"]
+
+    # ---- 跨平台账号关联：在身份解析/注册门槛之前，用原始 openid 建立别名 ----
+    if msg.get("msgType") == "text":
+        t = (msg.get("content") or "").strip()
+        for pre in BIND_CMDS:
+            if t.startswith(pre):
+                return business.link_by_login_code(raw, t[len(pre):].strip())
+
+    # ---- 身份解析：已关联的次账号 → 主账号（之后全部按主账号处理）----
+    openid = business.resolve_openid(raw)
 
     # ---- 事件 ----
     if msg["msgType"] == "event":
