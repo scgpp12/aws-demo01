@@ -8,6 +8,7 @@
 submissions 仍以 lineUserId 为键；花名册的人通过 roster.lineUserId 关联其提交。
 period 形如 '202606'。
 """
+import calendar
 import re
 from datetime import datetime, timezone
 
@@ -290,6 +291,23 @@ def holiday_work_warnings(type_, data):
             days.append(d)
     days.sort()
     return [_fmt_day(d) for d in days]
+
+
+def missing_dates(type_, data, period):
+    """勤務表 5 行目の日付が 1 日〜月末まで揃っているか。欠落日（int）のリストを返す。"""
+    if type_ != "kintai":
+        return []
+    y, mo = int(period[:4]), int(period[4:])
+    last = calendar.monthrange(y, mo)[1]
+    m = xlsx.cell_map(data)
+    present = set()
+    for ref, val in m.items():
+        if not re.match(r"^[A-Z]+5$", ref):
+            continue
+        d = xlsx.to_date(val)
+        if d and d.year == y and d.month == mo:
+            present.add(d.day)
+    return [day for day in range(1, last + 1) if day not in present]
 
 
 def pending_bytes(user_id):

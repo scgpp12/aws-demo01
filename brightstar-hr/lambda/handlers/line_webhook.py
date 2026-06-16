@@ -228,12 +228,16 @@ def _do_submit(uid, type_, data, rt):
     period, _, resubmit = business.save_submission(uid, type_, data, period)
     msgs = [{"type": "text",
              "text": T("submit_ok", period=_fmt_period(period), label=type_label(type_))}]
-    # 4) 休日勤務の注意（保存はする＝警告のみ）
+    # 4) 注意（保存はする＝警告のみ）：休日勤務 / 日付の欠落
     warns = business.holiday_work_warnings(type_, data)
     if warns:
         msgs.append({"type": "text",
                      "text": T("holiday_work_warn", dates="、".join(warns))})
-    line.reply_messages(rt, msgs)
+    miss = business.missing_dates(type_, data, period)
+    if miss:
+        days = "、".join("%d日" % d for d in miss)
+        msgs.append({"type": "text", "text": T("date_incomplete_warn", days=days)})
+    line.reply_messages(rt, msgs[:5])
     _maybe_notify_resubmit(uid, period, type_, resubmit)
 
 
