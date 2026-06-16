@@ -58,6 +58,16 @@ Parameters:
     Default: ""
     Description: 老师自助认证口令（学员发「老师认证 <口令>」升级为老师）。
     NoEcho: true
+  LineChannelSecret:
+    Type: String
+    Default: ""
+    Description: LINE Messaging API 的 Channel secret（webhook 验签用）。
+    NoEcho: true
+  LineChannelAccessToken:
+    Type: String
+    Default: ""
+    Description: LINE Messaging API 的 Channel access token（回复/推送用，long-lived）。
+    NoEcho: true
   TeacherOpenids:
     Type: String
     Default: ""
@@ -116,6 +126,8 @@ Globals:
         WECOM_KF_OPEN_KFID: !Ref WeComKfOpenKfId
         TEACHER_OPENIDS: !Ref TeacherOpenids
         TEACHER_SIGNUP_CODE: !Ref TeacherSignupCode
+        LINE_CHANNEL_SECRET: !Ref LineChannelSecret
+        LINE_CHANNEL_ACCESS_TOKEN: !Ref LineChannelAccessToken
         BEDROCK_ENABLED: !Ref BedrockEnabled
         BEDROCK_MODEL_ID: !Ref BedrockModelId
         BEDROCK_CHAT_MODEL_ID: !Ref BedrockChatModelId
@@ -293,6 +305,38 @@ Resources:
           Properties: { ApiId: !Ref HttpApi, Method: POST, Path: "/wechat" }
 
   # =========================================================================
+  # Lambda —— LINE Webhook（前端适配；后端业务复用 webhook._route）
+  # =========================================================================
+  LineWebhookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AppName}-${Stage}-line-webhook"
+      CodeUri: src/
+      Handler: handlers.line_webhook.handler
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref StudentsTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref CoursesTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref EnrollmentsTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref GroupsTable }
+        - DynamoDBReadPolicy: { TableName: !Ref KnowledgeTable }   # RAG 检索（只读）
+        - Statement:                      # 读 Enrollments GSI1
+            Effect: Allow
+            Action: [dynamodb:Query]
+            Resource: !Sub "${EnrollmentsTable.Arn}/index/GSI1"
+        - Statement:                      # Bedrock 意图解析 + RAG 生成（东京区）
+            Effect: Allow
+            Action: [bedrock:InvokeModel]
+            Resource: "*"
+        - Statement:                      # Zoom 凭证（上线启用）
+            Effect: Allow
+            Action: [secretsmanager:GetSecretValue]
+            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${AppName}/${Stage}/zoom-*"
+      Events:
+        LineMessage:                      # POST：LINE 推送消息/事件（验签在代码内）
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: POST, Path: "/line" }
+
+  # =========================================================================
   # Lambda —— 课程网站登录校验 API（/web/login）
   # =========================================================================
   WebFunction:
@@ -364,5 +408,8 @@ Outputs:
   WebLoginApiUrl:
     Description: 课程网站调用的登录校验接口
     Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/web/login"
+  LineWebhookUrl:
+    Description: 填到 LINE Developers「Messaging API → Webhook URL」
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/line"
   Region:
     Value: !Ref AWS::Region

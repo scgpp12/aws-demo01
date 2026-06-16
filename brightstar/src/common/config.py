@@ -29,6 +29,10 @@ WECOM_RELAY_URL = os.environ.get("WECOM_RELAY_URL", "")  # 形如 http://47.85.1
 WECOM_RELAY_AUTH = os.environ.get("WECOM_RELAY_AUTH", "")  # 中转共享密钥(X-Relay-Auth);公网暴露时防滥用
 WECOM_KF_OPEN_KFID = os.environ.get("WECOM_KF_OPEN_KFID", "")  # 主动发提醒用
 
+# LINE Messaging API（前端适配层；后端业务与企业微信共用）
+LINE_CHANNEL_SECRET = os.environ.get("LINE_CHANNEL_SECRET", "")          # 验签
+LINE_CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN", "")  # 回复/推送
+
 # 老师自助认证口令（学员发「老师认证 <口令>」即可升级为老师）
 TEACHER_SIGNUP_CODE = os.environ.get("TEACHER_SIGNUP_CODE", "")
 
