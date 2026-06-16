@@ -129,6 +129,15 @@ def _route(ev, base=""):
             line.reply(rt, reply_text)
             return
         t = (ev.get("content", "") or "").strip()
+        tword = business.infer_type(t, t)            # 待分类文件 + 类型词 → 校验并转正
+        if tword and business.has_pending(uid):
+            data = business.pending_bytes(uid)
+            business.clear_pending(uid)
+            if data is None:
+                line.reply(rt, T("submit_fail"))
+            else:
+                _do_submit(uid, tword, data, rt)
+            return
         if t in TEMPLATE_CMDS:                       # 模板用按钮回复（短链，隐藏长 URL）
             line.reply_messages(rt, [_template_buttons(base)])
             return
@@ -169,23 +178,7 @@ def _route(ev, base=""):
 def _route_text(uid, text):
     t = (text or "").strip()
 
-    # 1) 有待分类文件，且这句是类型词 → 先校验年月，再转正
-    tword = business.infer_type(t, t)
-    if tword and business.has_pending(uid):
-        data = business.pending_bytes(uid)
-        period = business.current_period()
-        ok, found = business.check_file_period(tword, data or b"", period)
-        if not ok:
-            business.clear_pending(uid)
-            lbl = type_label(tword)
-            exp = _fmt_period(period)
-            return (T("period_unreadable", label=lbl) if found is None
-                    else T("period_mismatch", label=lbl, found=found, expected=exp))
-        period, resubmit = business.resolve_pending(uid, tword)
-        _maybe_notify_resubmit(uid, period, tword, resubmit)
-        return T("submit_ok", period=_fmt_period(period), label=type_label(tword))
-
-    # 2) 通用指令（テンプレ / 履歴 / 一覧 / 一括DL 在 _route 里处理）
+    # 通用指令（テンプレ / 履歴 / 一覧 / 一括DL / pending転正 は _route で処理済）
     if t in ("メニュー", "菜单", "menu", "help", "?", "？"):
         return _menu(uid)
 
@@ -208,29 +201,40 @@ def _handle_file(uid, ev, rt):
     fname = ev.get("fileName") or "file.xlsx"
     type_ = business.infer_type(fname, "")
     if type_:
-        if not _check_period_or_reject(uid, type_, data, rt):
-            return                                   # 年月不一致 → 保存しない
-        period, _, resubmit = business.save_submission(uid, type_, data)
-        line.reply(rt, T("submit_ok", period=_fmt_period(period), label=type_label(type_)))
-        _maybe_notify_resubmit(uid, period, type_, resubmit)
+        _do_submit(uid, type_, data, rt)
     else:
         business.stash_pending(uid, fname, data)
         line.reply(rt, T("ask_type"))
 
 
-def _check_period_or_reject(uid, type_, data, rt):
-    """ファイル内の年月が提出月（当月）と一致するか検証。NG なら返信して False。"""
+def _do_submit(uid, type_, data, rt):
+    """提出の検証→保存→返信（年月／氏名チェック、休日勤務の注意）。"""
+    # 1) 年月チェック（不一致は保存しない）
     period = business.current_period()
     ok, found = business.check_file_period(type_, data, period)
-    if ok:
-        return True
-    lbl = type_label(type_)
-    exp = _fmt_period(period)
-    if found is None:
-        line.reply(rt, T("period_unreadable", label=lbl))
-    else:
-        line.reply(rt, T("period_mismatch", label=lbl, found=found, expected=exp))
-    return False
+    if not ok:
+        lbl = type_label(type_)
+        exp = _fmt_period(period)
+        line.reply(rt, T("period_unreadable", label=lbl) if found is None
+                   else T("period_mismatch", label=lbl, found=found, expected=exp))
+        return
+    # 2) 氏名チェック（勤務表のみ・不一致は保存しない）
+    ok_name, fname_in = business.check_name(type_, data, uid)
+    if not ok_name:
+        line.reply(rt, T("name_mismatch", found=fname_in or "—",
+                         want=business.emp_name(uid) or "—"))
+        return
+    # 3) 保存
+    period, _, resubmit = business.save_submission(uid, type_, data, period)
+    msgs = [{"type": "text",
+             "text": T("submit_ok", period=_fmt_period(period), label=type_label(type_))}]
+    # 4) 休日勤務の注意（保存はする＝警告のみ）
+    warns = business.holiday_work_warnings(type_, data)
+    if warns:
+        msgs.append({"type": "text",
+                     "text": T("holiday_work_warn", dates="、".join(warns))})
+    line.reply_messages(rt, msgs)
+    _maybe_notify_resubmit(uid, period, type_, resubmit)
 
 
 def _maybe_notify_resubmit(uid, period, type_, resubmit):

@@ -8,14 +8,17 @@
 submissions 仍以 lineUserId 为键；花名册的人通过 roster.lineUserId 关联其提交。
 period 形如 '202606'。
 """
+import re
 from datetime import datetime, timezone
 
 from boto3.dynamodb.conditions import Key
 
-from . import config, db, i18n, s3util, xlsx
+from . import config, db, i18n, jpholiday, s3util, xlsx
 
-# 内容チェック対象セル（年月）
-PERIOD_CELL = {"kintai": "B5", "commute": "A1"}
+# 内容チェック対象セル
+PERIOD_CELL = {"kintai": "B5", "commute": "A1"}   # 年月
+NAME_CELL = {"kintai": "B3"}                       # 氏名（勤務表のみ）
+_WD = "月火水木金土日"
 
 # ---------------- 时间 ----------------
 
@@ -245,6 +248,48 @@ def check_file_period(type_, data, period):
     want = (int(period[:4]), int(period[4:]))
     found = "%04d-%02d" % ym
     return (ym == want), found
+
+
+def _norm_name(s):
+    return re.sub(r"\s+", "", (s or "").replace("　", "")).strip()
+
+
+def check_name(type_, data, user_id):
+    """勤務表 B3 の氏名が登録氏名と一致するか。返り値 (ok, found_name)。
+    対象外の種別は常に ok。"""
+    ref = NAME_CELL.get(type_)
+    if not ref:
+        return True, None
+    found = xlsx.read_cell(data, ref)
+    want = emp_name(user_id)
+    if not found or not want:
+        return False, found
+    return (_norm_name(found) == _norm_name(want)), found
+
+
+def _fmt_day(d):
+    tag = _WD[d.weekday()] + ("・祝" if jpholiday.holiday_name(d) else "")
+    return "%d/%d(%s)" % (d.month, d.day, tag)
+
+
+def holiday_work_warnings(type_, data):
+    """勤務表で『休日（土日・祝日）なのに時間（6行/7行）が入力されている』日を列挙。
+    返り値：['12/7(土)', '12/23(月・祝)', ...]"""
+    if type_ != "kintai":
+        return []
+    m = xlsx.cell_map(data)
+    days = []
+    for ref, val in m.items():
+        if not re.match(r"^[A-Z]+5$", ref):
+            continue
+        col = xlsx.col_of(ref)
+        d = xlsx.to_date(val)
+        if not d or not jpholiday.is_rest_day(d):
+            continue
+        if xlsx.is_number(m.get(col + "6")) or xlsx.is_number(m.get(col + "7")):
+            days.append(d)
+    days.sort()
+    return [_fmt_day(d) for d in days]
 
 
 def pending_bytes(user_id):

@@ -3,6 +3,7 @@ cdk/node_modules/
 cdk/cdk.out/
 cdk/*.js
 cdk/*.d.ts
+cdk/outputs.json
 !cdk/jest.config.js
 
 # Python
@@ -16,6 +17,3 @@ secrets*.json
 
 # 真实模板可含个人信息时按需忽略（默认提交占位 README）
 # templates/*.xlsx
-
-# CDK deploy outputs (generated)
-cdk/outputs.json
