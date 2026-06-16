@@ -197,7 +197,9 @@ def list_students() -> str:
     items = db.students().scan().get("Items", [])
     active = [
         s for s in items
-        if s.get("status") != "awaiting_name" and not str(s.get("openid", "")).startswith("__")
+        if s.get("status") not in ("awaiting_name", "awaiting_lang")
+        and not str(s.get("openid", "")).startswith("__")
+        and not s.get("linkedTo")  # 跨平台已关联的别名记录，不重复计入名单
     ]
     if not active:
         return "暂无学员。"
