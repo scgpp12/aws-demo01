@@ -1,0 +1,34 @@
+============================= test session starts =============================
+platform win32 -- Python 3.10.11, pytest-9.1.0, pluggy-1.6.0 -- C:\Users\sons\Downloads\aws-test\brightstar-hr\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\sons\Downloads\aws-test\brightstar-hr
+plugins: cov-7.1.0
+collecting ... collected 24 items
+
+tests/integration/test_it_download.py::test_it19_template_download_redirect PASSED [  4%]
+tests/integration/test_it_download.py::test_it20_signed_download_ok_and_tampered_404 PASSED [  8%]
+tests/integration/test_it_download.py::test_it21_bulk_download_zip PASSED [ 12%]
+tests/integration/test_it_download.py::test_it22_signature_verification PASSED [ 16%]
+tests/integration/test_it_hr.py::test_it10_personal_history PASSED       [ 20%]
+tests/integration/test_it_hr.py::test_it11_hr_roster_status PASSED       [ 25%]
+tests/integration/test_it_hr.py::test_it12_hr_missing PASSED             [ 29%]
+tests/integration/test_it_hr.py::test_it13_hr_remind_invokes_reminder PASSED [ 33%]
+tests/integration/test_it_hr.py::test_it15_roster_add_and_broadcast PASSED [ 37%]
+tests/integration/test_it_hr.py::test_it16_roster_list PASSED            [ 41%]
+tests/integration/test_it_hr.py::test_it17_roster_update_and_broadcast PASSED [ 45%]
+tests/integration/test_it_hr.py::test_it18_roster_delete_and_unlink PASSED [ 50%]
+tests/integration/test_it_hr.py::test_it23_late_resubmit_notifies_hr PASSED [ 54%]
+tests/integration/test_it_registration.py::test_it01_registration_happy_path PASSED [ 58%]
+tests/integration/test_it_registration.py::test_it02_name_not_in_roster PASSED [ 62%]
+tests/integration/test_it_registration.py::test_it03_duplicate_name PASSED [ 66%]
+tests/integration/test_it_reminder.py::test_it14_scheduled_reminder_sends_to_linked_unsubmitted PASSED [ 70%]
+tests/integration/test_it_reminder.py::test_it14b_reminder_manual_payload_specific_type PASSED [ 75%]
+tests/integration/test_it_submission.py::test_it04_kintai_submit_ok PASSED [ 79%]
+tests/integration/test_it_submission.py::test_it05_period_mismatch_not_saved PASSED [ 83%]
+tests/integration/test_it_submission.py::test_it06_name_mismatch_not_saved PASSED [ 87%]
+tests/integration/test_it_submission.py::test_it07_holiday_work_warning_but_saved PASSED [ 91%]
+tests/integration/test_it_submission.py::test_it08_missing_dates_warning PASSED [ 95%]
+tests/integration/test_it_submission.py::test_it09_pending_then_resolve_by_typeword PASSED [100%]
+
+- generated xml file: C:\Users\sons\Downloads\aws-test\brightstar-hr\docs\test-evidence\integration-junit.xml -
+============================= 24 passed in 1.17s ==============================

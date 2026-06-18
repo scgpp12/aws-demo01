@@ -1,0 +1,5 @@
+# 単体・結合テストの実行に必要なパッケージ（本番 Lambda コードは標準ライブラリ＋boto3 のみ）
+pytest>=9
+moto[dynamodb,s3]>=5
+openpyxl>=3.1
+pytest-cov>=5

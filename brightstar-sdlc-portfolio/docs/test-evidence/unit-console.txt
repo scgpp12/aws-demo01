@@ -1,0 +1,99 @@
+============================= test session starts =============================
+platform win32 -- Python 3.10.11, pytest-9.1.0, pluggy-1.6.0 -- C:\Users\sons\Downloads\aws-test\brightstar-hr\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\sons\Downloads\aws-test\brightstar-hr
+plugins: cov-7.1.0
+collecting ... collected 69 items
+
+tests/test_business.py::test_normalize_period_yyyymm PASSED              [  1%]
+tests/test_business.py::test_normalize_period_bracket PASSED             [  2%]
+tests/test_business.py::test_normalize_period_hyphen_zeropad PASSED      [  4%]
+tests/test_business.py::test_normalize_period_month_word PASSED          [  5%]
+tests/test_business.py::test_normalize_period_empty_or_none PASSED       [  7%]
+tests/test_business.py::test_normalize_period_irrelevant_text PASSED     [  8%]
+tests/test_business.py::test_normalize_period_month_over_12_unguarded PASSED [ 10%]
+tests/test_business.py::test_infer_type_kintai_by_filename PASSED        [ 11%]
+tests/test_business.py::test_infer_type_commute_by_filename PASSED       [ 13%]
+tests/test_business.py::test_infer_type_kintai_priority PASSED           [ 14%]
+tests/test_business.py::test_infer_type_unknown PASSED                   [ 15%]
+tests/test_business.py::test_infer_type_none_empty PASSED                [ 17%]
+tests/test_business.py::test_infer_type_case_insensitive PASSED          [ 18%]
+tests/test_business.py::test_infer_type_by_text_arg PASSED               [ 20%]
+tests/test_business.py::test_norm_name_half_space PASSED                 [ 21%]
+tests/test_business.py::test_norm_name_full_space PASSED                 [ 23%]
+tests/test_business.py::test_norm_name_trailing_space PASSED             [ 24%]
+tests/test_business.py::test_norm_name_none PASSED                       [ 26%]
+tests/test_business.py::test_is_late_resubmit_current_false PASSED       [ 27%]
+tests/test_business.py::test_is_late_resubmit_past_true PASSED           [ 28%]
+tests/test_business.py::test_is_late_resubmit_future_false PASSED        [ 30%]
+tests/test_business.py::test_check_file_period_match_kintai PASSED       [ 31%]
+tests/test_business.py::test_check_file_period_match_commute PASSED      [ 33%]
+tests/test_business.py::test_check_file_period_mismatch PASSED           [ 34%]
+tests/test_business.py::test_check_file_period_unreadable PASSED         [ 36%]
+tests/test_business.py::test_check_file_period_unknown_type PASSED       [ 37%]
+tests/test_business.py::test_holiday_work_warnings_weekend_with_time PASSED [ 39%]
+tests/test_business.py::test_holiday_work_warnings_weekday_no_warn PASSED [ 40%]
+tests/test_business.py::test_holiday_work_warnings_holiday_no_time PASSED [ 42%]
+tests/test_business.py::test_holiday_work_warnings_holiday_marked PASSED [ 43%]
+tests/test_business.py::test_holiday_work_warnings_commute_empty PASSED  [ 44%]
+tests/test_business.py::test_holiday_work_warnings_broken_file PASSED    [ 46%]
+tests/test_business.py::test_missing_dates_all_present PASSED            [ 47%]
+tests/test_business.py::test_missing_dates_first_and_last_missing PASSED [ 49%]
+tests/test_business.py::test_missing_dates_other_month_not_counted PASSED [ 50%]
+tests/test_business.py::test_missing_dates_leap_february PASSED          [ 52%]
+tests/test_business.py::test_missing_dates_commute_empty PASSED          [ 53%]
+tests/test_business.py::test_check_name_kintai_match PASSED              [ 55%]
+tests/test_business.py::test_check_name_kintai_mismatch PASSED           [ 56%]
+tests/test_business.py::test_check_name_commute_always_ok PASSED         [ 57%]
+tests/test_business.py::test_check_name_empty_b3 PASSED                  [ 59%]
+tests/test_jpholiday.py::test_is_holiday_new_year PASSED                 [ 60%]
+tests/test_jpholiday.py::test_is_holiday_substitute PASSED               [ 62%]
+tests/test_jpholiday.py::test_is_holiday_weekday_false PASSED            [ 63%]
+tests/test_jpholiday.py::test_is_rest_day_weekend PASSED                 [ 65%]
+tests/test_jpholiday.py::test_is_rest_day_holiday_on_weekday PASSED      [ 66%]
+tests/test_jpholiday.py::test_is_rest_day_plain_weekday_false PASSED     [ 68%]
+tests/test_webhook_pure.py::test_sign_key_deterministic PASSED           [ 69%]
+tests/test_webhook_pure.py::test_sign_key_16_hex PASSED                  [ 71%]
+tests/test_webhook_pure.py::test_sign_key_differs_by_key PASSED          [ 72%]
+tests/test_webhook_pure.py::test_sign_key_depends_on_secret PASSED       [ 73%]
+tests/test_xlsx.py::test_to_date_serial_in_range PASSED                  [ 75%]
+tests/test_xlsx.py::test_to_date_serial_lower_boundary PASSED            [ 76%]
+tests/test_xlsx.py::test_to_date_serial_upper_boundary PASSED            [ 78%]
+tests/test_xlsx.py::test_to_date_string_formats PASSED                   [ 79%]
+tests/test_xlsx.py::test_to_date_invalid_month PASSED                    [ 81%]
+tests/test_xlsx.py::test_to_date_none_and_garbage PASSED                 [ 82%]
+tests/test_xlsx.py::test_col_of_single_and_multi PASSED                  [ 84%]
+tests/test_xlsx.py::test_col_of_invalid PASSED                           [ 85%]
+tests/test_xlsx.py::test_is_number_true PASSED                           [ 86%]
+tests/test_xlsx.py::test_is_number_false PASSED                          [ 88%]
+tests/test_xlsx.py::test_cell_map_string_and_number PASSED               [ 89%]
+tests/test_xlsx.py::test_cell_map_empty_cells_excluded PASSED            [ 91%]
+tests/test_xlsx.py::test_cell_map_broken_bytes PASSED                    [ 92%]
+tests/test_xlsx.py::test_read_cell_missing PASSED                        [ 94%]
+tests/test_xlsx.py::test_cell_year_month_from_date_serial PASSED         [ 95%]
+tests/test_xlsx.py::test_cell_year_month_from_text PASSED                [ 97%]
+tests/test_xlsx.py::test_cell_year_month_invalid_month PASSED            [ 98%]
+tests/test_xlsx.py::test_cell_year_month_empty PASSED                    [100%]
+
+- generated xml file: C:\Users\sons\Downloads\aws-test\brightstar-hr\docs\test-evidence\unit-junit.xml -
+=============================== tests coverage ================================
+______________ coverage: platform win32, python 3.10.11-final-0 _______________
+
+Name                              Stmts   Miss  Cover   Missing
+---------------------------------------------------------------
+lambda\common\__init__.py             0      0   100%
+lambda\common\business.py           260    147    43%   27, 31, 49-50, 56-63, 67, 71-72, 77, 81-86, 90-99, 104-107, 119-131, 135-146, 153, 158-161, 165-169, 173-177, 182-186, 193-226, 314-317, 322-324, 331-332, 341-342, 357-361, 367-368, 377-388, 392-393, 397-398, 405-417, 421-422, 427-428, 433-441, 446-458
+lambda\common\config.py              37      8    78%   57-59, 65-68, 76
+lambda\common\db.py                  14      4    71%   14, 21, 26, 30
+lambda\common\i18n.py                10      5    50%   129-131, 135-136
+lambda\common\jpholiday.py           40      1    98%   47
+lambda\common\line.py                77     58    25%   26-30, 36-72, 76-90, 94, 102, 111, 127-129, 138-148, 157-164
+lambda\common\messaging.py            3      1    67%   6
+lambda\common\s3util.py              79     58    27%   34, 40, 44-45, 49-51, 57-60, 66-73, 80-83, 90, 94-96, 101-104, 109-121, 127-154
+lambda\common\xlsx.py               107     13    88%   23-25, 34-35, 45-47, 60, 65, 72-73, 75-76
+lambda\handlers\__init__.py           0      0   100%
+lambda\handlers\line_webhook.py     329    281    15%   26-28, 34-37, 41-45, 49, 53-55, 60-74, 83, 87, 91-104, 110, 114-175, 179-191, 197-207, 213-241, 246-252, 266, 270-279, 283-287, 291-335, 341, 349, 364-383, 387, 391, 395-417, 425, 429-430, 434-438, 445-471, 476-479, 487-499
+lambda\handlers\reminder.py          26     26     0%   9-43
+---------------------------------------------------------------
+TOTAL                               982    602    39%
+============================= 69 passed in 1.12s ==============================
